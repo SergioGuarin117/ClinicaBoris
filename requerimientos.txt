@@ -1,0 +1,10 @@
+Estas son las tecnologias que estamos utilizando en el proyecto:
+Descargar:
+
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+python-dotenv
+python-jose
+passlib[bcrypt]
