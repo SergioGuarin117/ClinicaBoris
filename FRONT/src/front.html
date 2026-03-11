@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dr. Boris Viafara — Cirugía de Alta Especialidad</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --blue:#2563eb;--blue-dark:#1d4ed8;--blue-light:#eff6ff;--blue-mid:#dbeafe;
+      --text:#111827;--muted:#6b7280;--bg:#f8fafc;--white:#ffffff;--border:#e5e7eb;--dark:#111827;
+    }
+    html{scroll-behavior:smooth}
+    section[id]{scroll-margin-top:68px}
+    .section-divider[id]{scroll-margin-top:68px}
+    body{font-family:'Inter',sans-serif;background:var(--white);color:var(--text);font-size:16px}
+    a{text-decoration:none;color:inherit}ul{list-style:none}
+
+    /* NAV */
+    nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 5%;height:68px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+    .logo{font-size:1.2rem;font-weight:700;color:var(--blue)}
+    .nav-links{display:flex;gap:1.6rem;align-items:center}
+    .nav-links a{font-size:.88rem;font-weight:500;color:var(--text);transition:color .2s;white-space:nowrap}
+    .nav-links a:hover{color:var(--blue)}
+    .btn-nav{background:var(--blue);color:var(--white)!important;padding:.5rem 1.3rem;border-radius:8px;font-weight:600!important;transition:background .2s!important}
+    .btn-nav:hover{background:var(--blue-dark)!important}
+
+    /* HAMBURGER */
+    .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;background:none;border:none}
+    .hamburger span{display:block;width:24px;height:2px;background:var(--text);border-radius:2px;transition:all .3s}
+    .hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+    .hamburger.open span:nth-child(2){opacity:0}
+    .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+    /* MOBILE NAV */
+    .mobile-menu{display:none;flex-direction:column;gap:0;position:absolute;top:68px;left:0;right:0;background:var(--white);border-bottom:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.08);z-index:199}
+    .mobile-menu.open{display:flex}
+    .mobile-menu a{padding:.9rem 5%;font-size:.95rem;font-weight:500;color:var(--text);border-bottom:1px solid var(--border);transition:background .15s}
+    .mobile-menu a:hover{background:var(--blue-light);color:var(--blue)}
+    .mobile-menu a.btn-nav-mobile{background:var(--blue);color:var(--white);text-align:center;border-bottom:none;margin:.8rem 5%;border-radius:8px;font-weight:600}
+
+    .hero{min-height:calc(100vh - 68px);background:linear-gradient(135deg,#eef4ff 0%,#f5f8ff 60%,#e8f0fd 100%);display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:4rem 5%;gap:3rem}
+    .hero h1{font-size:clamp(2.2rem,4vw,3.4rem);font-weight:800;line-height:1.15;margin-bottom:1.2rem}
+    .hero p{font-size:1rem;color:var(--muted);line-height:1.75;max-width:420px;margin-bottom:2rem}
+    .hero-btns{display:flex;gap:1rem;flex-wrap:wrap}
+    .btn-primary{display:inline-flex;align-items:center;gap:.5rem;background:var(--blue);color:var(--white);padding:.8rem 1.6rem;border-radius:10px;font-size:.95rem;font-weight:600;border:none;cursor:pointer;transition:background .2s,transform .15s}
+    .btn-primary:hover{background:var(--blue-dark);transform:translateY(-1px)}
+    .btn-outline{display:inline-flex;align-items:center;gap:.5rem;background:transparent;color:var(--blue);padding:.8rem 1.6rem;border-radius:10px;font-size:.95rem;font-weight:600;border:2px solid var(--blue);cursor:pointer;transition:background .2s,transform .15s}
+    .btn-outline:hover{background:var(--blue-mid);transform:translateY(-1px)}
+
+    .hero-card{background:var(--white);border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(37,99,235,.13),0 4px 16px rgba(0,0,0,.07);max-width:480px;width:100%}
+    .card-bar{background:#f3f4f6;padding:.65rem 1rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--border)}
+    .dots{display:flex;gap:6px}.dot{width:11px;height:11px;border-radius:50%}
+    .d-r{background:#ff5f57}.d-y{background:#febc2e}.d-g{background:#28c840}
+    .card-lbl{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:#9ca3af;margin:0 auto}
+    .card-img{width:100%;aspect-ratio:4/4.2;background:linear-gradient(160deg,#bfd1e5 0%,#8aadc8 40%,#4a7a9b 100%);position:relative;overflow:hidden}
+    .card-img svg{position:absolute;inset:0;width:100%;height:100%}
+    .card-stats{display:flex;justify-content:space-around;padding:1rem;border-top:1px solid #f0f4ff}
+    .cstat-n{font-size:1.15rem;font-weight:800;color:var(--blue);text-align:center}
+    .cstat-l{font-size:.62rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.07em;text-align:center;margin-top:2px}
+
+    section{padding:5rem 5%}
+    .sec-tag{text-align:center;font-size:.75rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);margin-bottom:.5rem}
+    .sec-title{text-align:center;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;margin-bottom:.6rem}
+    .sec-sub{text-align:center;color:var(--muted);font-size:.95rem;max-width:560px;margin:0 auto 3rem}
+
+    .about{background:var(--white)}
+    .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;max-width:1100px;margin:0 auto}
+    .about-text h2{font-size:1.6rem;font-weight:700;margin-bottom:1rem}
+    .about-text p{color:var(--muted);line-height:1.8;font-size:.95rem;margin-bottom:1rem}
+    .about-img{border-radius:16px;overflow:hidden;aspect-ratio:4/3;background:#0a0f1e;display:flex;align-items:center;justify-content:center}
+
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;max-width:1100px;margin:3rem auto 0}
+    .stat-box{background:var(--blue-light);border-radius:14px;padding:1.8rem 1rem;text-align:center}
+    .stat-icon{width:44px;height:44px;background:var(--blue-mid);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto .8rem}
+    .stat-icon svg{width:22px;height:22px;color:var(--blue)}
+    .stat-n{font-size:1.8rem;font-weight:800;color:var(--text)}
+    .stat-l{font-size:.8rem;color:var(--muted);margin-top:.25rem}
+
+    .certs-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;max-width:1100px;margin:3rem auto 0}
+    .cert-box{background:var(--bg);border-radius:14px;padding:2rem;border:1px solid var(--border)}
+    .cert-box-title{display:flex;align-items:center;gap:.7rem;font-size:1.05rem;font-weight:700;margin-bottom:1.2rem}
+    .cert-box-title svg{width:22px;height:22px;color:var(--blue)}
+    .cert-item{display:flex;align-items:flex-start;gap:.7rem;font-size:.88rem;color:var(--muted);margin-bottom:.85rem;line-height:1.5}
+    .cert-item svg{width:18px;height:18px;color:var(--blue);flex-shrink:0;margin-top:1px}
+
+    .specialties{background:var(--bg)}
+    .spec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;max-width:1000px;margin:0 auto}
+    .spec-card{background:var(--white);border-radius:16px;padding:2rem;border:1px solid var(--border);transition:transform .2s,box-shadow .2s}
+    .spec-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(37,99,235,.1)}
+    .spec-icon{width:52px;height:52px;background:var(--blue-light);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:1.1rem}
+    .spec-icon svg{width:26px;height:26px;color:var(--blue)}
+    .spec-card h3{font-size:1.05rem;font-weight:700;margin-bottom:.5rem}
+    .spec-card p{font-size:.87rem;color:var(--muted);line-height:1.6}
+
+    .why{background:var(--white)}
+    .why-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;max-width:1100px;margin:0 auto}
+    .why-img{border-radius:16px;overflow:hidden;aspect-ratio:4/3;background:linear-gradient(135deg,#e8f0fd,#dbeafe);display:flex;align-items:center;justify-content:center}
+    .why-features{display:flex;flex-direction:column;gap:1.5rem}
+    .why-item{display:flex;align-items:flex-start;gap:1rem}
+    .why-icon{width:46px;height:46px;background:var(--blue-light);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .why-icon svg{width:22px;height:22px;color:var(--blue)}
+    .why-item h4{font-size:1rem;font-weight:700;margin-bottom:.3rem}
+    .why-item p{font-size:.87rem;color:var(--muted);line-height:1.6}
+
+    .pricing{background:var(--bg)}
+    .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:820px;margin:0 auto}
+    .price-card{background:var(--white);border-radius:16px;padding:2.2rem;border:1px solid var(--border);position:relative}
+    .price-card.featured{border:2px solid var(--blue);box-shadow:0 8px 30px rgba(37,99,235,.15)}
+    .price-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--blue);color:var(--white);font-size:.72rem;font-weight:700;padding:.3rem 1.1rem;border-radius:20px;white-space:nowrap}
+    .price-card h3{font-size:1.2rem;font-weight:700;margin-bottom:.4rem}
+    .price-duration{display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--muted);margin-bottom:1.2rem}
+    .price-duration svg{width:16px;height:16px}
+    .price-amount{font-size:3rem;font-weight:800;color:var(--blue);line-height:1}
+    .price-amount span{font-size:1rem;font-weight:500;color:var(--muted)}
+    .price-divider{border:none;border-top:1px solid var(--border);margin:1.4rem 0}
+    .price-feature{display:flex;align-items:center;gap:.6rem;font-size:.88rem;color:var(--muted);margin-bottom:.75rem}
+    .price-feature svg{width:18px;height:18px;color:#22c55e;flex-shrink:0}
+    .btn-price{width:100%;margin-top:1.5rem;padding:.85rem;border-radius:10px;font-size:.95rem;font-weight:600;cursor:pointer}
+    .btn-price-outline{background:transparent;color:var(--blue);border:2px solid var(--blue)}
+    .btn-price-outline:hover{background:var(--blue-mid)}
+    .btn-price-solid{background:var(--blue);color:var(--white);border:none}
+    .btn-price-solid:hover{background:var(--blue-dark)}
+
+    .testimonials{background:var(--white)}
+    .test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;max-width:1100px;margin:0 auto}
+    .test-card{background:var(--bg);border-radius:16px;padding:1.8rem;border:1px solid var(--border)}
+    .test-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.8rem}
+    .stars{color:#f59e0b;font-size:1rem;letter-spacing:2px}
+    .quote-icon{color:#bfdbfe;font-size:2.5rem;font-weight:800;line-height:.8}
+    .test-card p{font-size:.87rem;color:var(--muted);line-height:1.7;margin-bottom:1.2rem}
+    .test-author{display:flex;align-items:center;gap:.8rem}
+    .avatar{width:42px;height:42px;border-radius:50%;background:var(--blue-mid);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;color:var(--blue);flex-shrink:0}
+    .author-name{font-size:.9rem;font-weight:600}
+    .author-proc{font-size:.77rem;color:var(--muted)}
+
+    .contact{background:var(--bg)}
+    .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;max-width:1100px;margin:0 auto}
+    .contact-info h3{font-size:1.3rem;font-weight:700;margin-bottom:1.5rem}
+    .contact-item{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.5rem}
+    .contact-icon{width:46px;height:46px;background:var(--blue-light);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .contact-icon svg{width:20px;height:20px;color:var(--blue)}
+    .contact-item h4{font-size:.95rem;font-weight:700;margin-bottom:.25rem}
+    .contact-item p{font-size:.88rem;color:var(--muted);line-height:1.6}
+    .contact-map{background:var(--blue-mid);border-radius:16px;height:340px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)}
+
+    footer{background:var(--dark);color:#e5e7eb;padding:3.5rem 5% 2rem}
+    .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:2.5rem}
+    .footer-brand .logo{color:#fff;font-size:1.1rem;margin-bottom:.8rem;display:block}
+    .footer-brand p{font-size:.85rem;color:#9ca3af;line-height:1.7}
+    .footer-col h4{font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#9ca3af;margin-bottom:1.1rem}
+    .footer-col ul li{margin-bottom:.65rem}
+    .footer-col ul a{font-size:.88rem;color:#d1d5db;transition:color .2s}
+    .footer-col ul a:hover{color:#fff}
+    .social-icons{display:flex;gap:.7rem;margin-top:.5rem}
+    .social-btn{width:38px;height:38px;border-radius:8px;background:#1f2937;display:flex;align-items:center;justify-content:center;transition:background .2s}
+    .social-btn:hover{background:var(--blue)}
+    .social-btn svg{width:17px;height:17px;color:#d1d5db}
+    .footer-bottom{border-top:1px solid #1f2937;padding-top:1.5rem;text-align:center}
+    .footer-bottom p{font-size:.82rem;color:#6b7280;margin-bottom:.3rem}
+
+    .chat-fab{position:fixed;bottom:2rem;right:2rem;width:50px;height:50px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,99,235,.4);cursor:pointer;z-index:300;transition:transform .2s}
+    .chat-fab:hover{transform:scale(1.1)}
+    .chat-fab svg{width:22px;height:22px;color:#fff}
+
+    /* Active nav link */
+    .nav-links a.active{color:var(--blue);font-weight:600}
+
+    /* SECTION DIVIDERS */
+    .section-divider{
+      display:flex;align-items:center;justify-content:center;gap:1.2rem;
+      padding:1rem 5%;background:var(--dark);position:relative;overflow:hidden;
+    }
+    .section-divider::before,.section-divider::after{
+      content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,#374151,transparent);
+    }
+    .section-divider-label{
+      display:flex;align-items:center;gap:.6rem;
+      font-size:.7rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+      color:#9ca3af;white-space:nowrap;padding:.45rem 1.2rem;
+      border:1px solid #374151;border-radius:20px;background:#1f2937;
+    }
+    .section-divider-label svg{width:13px;height:13px;color:#4b83f0;flex-shrink:0}
+
+    @media(max-width:900px){
+      .nav-links{display:none}
+      .hamburger{display:flex}
+    }
+    @media(max-width:800px){
+      .hero,.about-grid,.why-grid,.contact-grid,.footer-grid{grid-template-columns:1fr}
+      .spec-grid,.price-grid,.test-grid,.stats-row,.certs-grid{grid-template-columns:1fr}
+      .hero-right{display:none}
+      section{padding:3rem 5%}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Dr. Boris Viafara</div>
+  <ul class="nav-links">
+    <li><a href="#inicio">Inicio</a></li>
+    <li><a href="#sobre">Sobre Mí</a></li>
+    <li><a href="#especialidades">Especialidades</a></li>
+    <li><a href="#por-que">¿Por Qué Elegirnos?</a></li>
+    <li><a href="#cita">Separar Cita</a></li>
+    <li><a href="#testimonios">Testimonios</a></li>
+    <li><a href="#contacto" class="btn-nav">Contacto</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" aria-label="Abrir menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#inicio">Inicio</a>
+  <a href="#sobre">Sobre Mí</a>
+  <a href="#especialidades">Especialidades</a>
+  <a href="#por-que">¿Por Qué Elegirnos?</a>
+  <a href="#cita">Separar Cita</a>
+  <a href="#testimonios">Testimonios</a>
+  <a href="#contacto" class="btn-nav-mobile">Contacto</a>
+</div>
+
+<!-- DIVIDER: INICIO -->
+<div class="section-divider" id="inicio">
+  <div class="section-divider-label">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Inicio
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <h1>Cirugía de Alta<br/>Especialidad</h1>
+    <p>Más de 15 años de experiencia brindando atención médica de excelencia con tecnología de vanguardia y un enfoque personalizado.</p>
+    <div class="hero-btns">
+      <a href="#cita" class="btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Agendar Cita
+      </a>
+      <a href="#contacto" class="btn-outline">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.07 11.5 19.79 19.79 0 011 2.18 2 2 0 013 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        Llamar Ahora
+      </a>
+    </div>
+  </div>
+  <div class="hero-right" style="display:flex;justify-content:center">
+    <div class="hero-card">
+      <div class="card-bar">
+        <div class="dots"><div class="dot d-r"></div><div class="dot d-y"></div><div class="dot d-g"></div></div>
+        <span class="card-lbl">Radiology Service · Operating Room</span>
+      </div>
+      <div class="card-img">
+        <svg viewBox="0 0 480 420" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <rect width="480" height="420" fill="#9ab5cc"/>
+          <rect width="480" height="240" fill="#b8d0e0"/>
+          <ellipse cx="240" cy="26" rx="90" ry="19" fill="#d8ecf8" opacity=".7"/>
+          <ellipse cx="240" cy="26" rx="54" ry="11" fill="#fff" opacity=".9"/>
+          <rect x="172" y="36" width="136" height="192" rx="4" fill="#7a9db5" opacity=".55"/>
+          <rect x="180" y="44" width="120" height="176" rx="3" fill="#5a8099" opacity=".6"/>
+          <ellipse cx="240" cy="178" rx="42" ry="12" fill="#daeef8" opacity=".8"/>
+          <circle cx="240" cy="190" r="26" fill="#eaf6ff" stroke="#c0d8e8" stroke-width="2"/>
+          <ellipse cx="228" cy="302" rx="19" ry="18" fill="#e4eff8"/>
+          <rect x="210" y="318" width="36" height="58" rx="7" fill="#d4e4f0"/>
+          <ellipse cx="170" cy="312" rx="16" ry="16" fill="#ddeaf5"/>
+          <rect x="155" y="326" width="30" height="52" rx="6" fill="#ccdae8"/>
+          <ellipse cx="290" cy="308" rx="16" ry="16" fill="#e4eff8"/>
+          <rect x="275" y="322" width="30" height="52" rx="6" fill="#d4e4f0"/>
+          <rect x="162" y="362" width="152" height="28" rx="7" fill="#c0d2df" stroke="#a8c2d2" stroke-width="1"/>
+          <rect x="155" y="382" width="166" height="8" rx="4" fill="#aabece"/>
+          <ellipse cx="238" cy="357" rx="23" ry="14" fill="#e8f2f8"/>
+          <rect x="190" y="360" width="96" height="22" rx="5" fill="#d8e8f4"/>
+          <rect x="74" y="278" width="50" height="106" rx="5" fill="#96b0c4" opacity=".75"/>
+          <rect x="78" y="283" width="42" height="42" rx="4" fill="#7a9cb4" opacity=".8"/>
+          <rect x="338" y="288" width="44" height="96" rx="5" fill="#96b0c4" opacity=".75"/>
+          <line x1="362" y1="182" x2="362" y2="385" stroke="#7890a0" stroke-width="3"/>
+          <ellipse cx="362" cy="200" rx="15" ry="21" fill="#ccdce8" opacity=".85"/>
+          <rect x="0" y="390" width="480" height="30" fill="#7899ae" opacity=".4"/>
+        </svg>
+      </div>
+      <div class="card-stats">
+        <div><div class="cstat-n">15+</div><div class="cstat-l">Años exp.</div></div>
+        <div><div class="cstat-n">5000+</div><div class="cstat-l">Cirugías</div></div>
+        <div><div class="cstat-n">98%</div><div class="cstat-l">Satisfacción</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER: SOBRE MÍ -->
+<div class="section-divider" id="sobre">
+  <div class="section-divider-label">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    Sobre Mí
+  </div>
+</div>
+
+<!-- SOBRE MÍ -->
+<section class="about">
+  <p class="sec-tag">Conóceme</p>
+  <h2 class="sec-title">Sobre el Dr. Boris Viafara</h2>
+  <p class="sec-sub">Cirujano certificado comprometido con la excelencia médica y el bienestar de cada paciente</p>
+  <div class="about-grid">
+    <div class="about-text">
+      <h2>Dedicación y Experiencia<br/>al Servicio de tu Salud</h2>
+      <p>Con más de 15 años de experiencia en cirugía general y especializada, el Dr. Boris Viafara ha dedicado su carrera a proporcionar atención médica de la más alta calidad.</p>
+      <p>Graduado de la Universidad Nacional Autónoma de México (UNAM), con especialización en el Hospital General de México y formación internacional en técnicas quirúrgicas avanzadas.</p>
+      <p>Su enfoque centrado en el paciente, combinado con el uso de tecnología de vanguardia, garantiza resultados óptimos y una recuperación más rápida y segura.</p>
+    </div>
+    <div class="about-img">
+      <svg width="100%" height="100%" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+        <rect width="400" height="300" fill="#060d1f"/>
+        <ellipse cx="200" cy="110" rx="65" ry="65" fill="#10203a"/>
+        <circle cx="200" cy="95" rx="34" ry="34" fill="#162840"/>
+        <ellipse cx="200" cy="108" rx="26" ry="19" fill="#0e1f35"/>
+        <rect x="130" y="168" width="140" height="110" rx="20" fill="#102038"/>
+        <rect x="148" y="168" width="104" height="48" rx="5" fill="#1a3a6a"/>
+        <circle cx="200" cy="148" r="10" fill="#3a7bd5" opacity=".6"/>
+        <ellipse cx="200" cy="30" rx="60" ry="15" fill="#1a4a8a" opacity=".4"/>
+        <ellipse cx="200" cy="30" rx="30" ry="8" fill="#2a6ad5" opacity=".3"/>
+        <rect x="184" y="100" width="32" height="16" rx="6" fill="#2a5080" opacity=".7"/>
+        <ellipse cx="200" cy="78" rx="34" ry="16" fill="#1a3a6a"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+      <div class="stat-n">15+</div><div class="stat-l">Años de Experiencia</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+      <div class="stat-n">5000+</div><div class="stat-l">Cirugías Exitosas</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+      <div class="stat-n">Certificado</div><div class="stat-l">Consejo Mexicano</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
+      <div class="stat-n">98%</div><div class="stat-l">Satisfacción</div>
+    </div>
+  </div>
+
+  <div class="certs-grid">
+    <div class="cert-box">
+      <div class="cert-box-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+        Certificaciones
+      </div>
+      <div class="cert-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Certificación del Consejo Mexicano de Cirugía General</div>
+      <div class="cert-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Fellow of the American College of Surgeons (FACS)</div>
+      <div class="cert-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Certificación en Cirugía Laparoscópica Avanzada</div>
+      <div class="cert-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Certificación en Cirugía Bariátrica y Metabólica</div>
+    </div>
+    <div class="cert-box">
+      <div class="cert-box-title">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        Cursos y Especializaciones
+      </div>
+      <div class="cert-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Curso Avanzado de Cirugía Mínimamente Invasiva - Hospital General de México</div>
+      <div class="cert-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Diplomado en Cirugía Oncológica - Instituto Nacional de Cancerología</div>
+      <div class="cert-item"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Curso Internacional de Cirugía Robótica - Johns Hopkins University</div>
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER: ESPECIALIDADES -->
+<div class="section-divider" id="especialidades">
+  <div class="section-divider-label">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+    Especialidades
+  </div>
+</div>
+
+<!-- ESPECIALIDADES -->
+<section class="specialties">
+  <p class="sec-tag">Servicios</p>
+  <h2 class="sec-title">Especialidades Médicas</h2>
+  <p class="sec-sub">Ofrecemos una amplia gama de servicios quirúrgicos con tecnología de última generación</p>
+  <div class="spec-grid">
+    <div class="spec-card">
+      <div class="spec-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="9" cy="9" r="3"/><path d="M17 17l-4-4"/><path d="M3 9h.01M21 9h.01"/></svg></div>
+      <h3>Cirugía Laparoscópica</h3>
+      <p>Procedimientos mínimamente invasivos para una recuperación más rápida y menos dolor postoperatorio.</p>
+    </div>
+    <div class="spec-card">
+      <div class="spec-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+      <h3>Cirugía General</h3>
+      <p>Tratamiento de hernias, vesícula biliar, apendicitis y otras condiciones abdominales.</p>
+    </div>
+    <div class="spec-card">
+      <div class="spec-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M8 12h8M12 8v8"/></svg></div>
+      <h3>Cirugía Bariátrica</h3>
+      <p>Procedimientos quirúrgicos para el tratamiento de la obesidad y sus comorbilidades metabólicas.</p>
+    </div>
+    <div class="spec-card">
+      <div class="spec-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+      <h3>Cirugía de Tiroides</h3>
+      <p>Tiroidectomía total o parcial con técnicas avanzadas para el tratamiento de nódulos y cáncer tiroideo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER: POR QUÉ ELEGIRNOS -->
+<div class="section-divider" id="por-que">
+  <div class="section-divider-label">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    ¿Por Qué Elegirnos?
+  </div>
+</div>
+
+<!-- POR QUÉ ELEGIRNOS — ID AÑADIDO -->
+<section class="why">
+  <p class="sec-tag">Ventajas</p>
+  <h2 class="sec-title">¿Por Qué Elegirnos?</h2>
+  <p class="sec-sub">Comprometidos con tu salud y bienestar en cada etapa del proceso</p>
+  <div class="why-grid">
+    <div class="why-img">
+      <svg width="360" height="270" viewBox="0 0 360 270" xmlns="http://www.w3.org/2000/svg">
+        <rect width="360" height="270" fill="#f0f6ff" rx="16"/>
+        <ellipse cx="180" cy="68" rx="130" ry="34" fill="#dbeafe" opacity=".65"/>
+        <ellipse cx="180" cy="68" rx="88" ry="20" fill="#bfdbfe" opacity=".8"/>
+        <rect x="40" y="100" width="280" height="148" rx="10" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+        <rect x="55" y="116" width="110" height="82" rx="8" fill="#dbeafe"/>
+        <rect x="62" y="123" width="96" height="68" rx="5" fill="#93c5fd" opacity=".35"/>
+        <rect x="180" y="116" width="120" height="36" rx="7" fill="#bfdbfe"/>
+        <rect x="180" y="160" width="120" height="36" rx="7" fill="#bfdbfe"/>
+        <circle cx="100" cy="220" r="16" fill="#2563eb" opacity=".12"/>
+        <circle cx="180" cy="222" r="16" fill="#2563eb" opacity=".12"/>
+        <circle cx="260" cy="220" r="16" fill="#2563eb" opacity=".12"/>
+        <text x="180" y="248" text-anchor="middle" fill="#93c5fd" font-size="11" font-family="Inter,sans-serif">Instalaciones modernas</text>
+      </svg>
+    </div>
+    <div class="why-features">
+      <div class="why-item">
+        <div class="why-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div><h4>Tecnología de Vanguardia</h4><p>Equipamiento médico de última generación para procedimientos más seguros y efectivos.</p></div>
+      </div>
+      <div class="why-item">
+        <div class="why-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div><h4>Atención Personalizada</h4><p>Seguimiento continuo antes, durante y después de cada procedimiento quirúrgico.</p></div>
+      </div>
+      <div class="why-item">
+        <div class="why-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+        <div><h4>Equipo Multidisciplinario</h4><p>Trabaja en conjunto con especialistas para una atención integral y completa.</p></div>
+      </div>
+      <div class="why-item">
+        <div class="why-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
+        <div><h4>Resultados Comprobados</h4><p>Más de 5,000 cirugías exitosas con una tasa de satisfacción del 98%.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER: SEPARAR CITA -->
+<div class="section-divider" id="cita">
+  <div class="section-divider-label">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Separar Cita
+  </div>
+</div>
+
+<!-- SEPARAR CITA -->
+<section class="pricing">
+  <p class="sec-tag">Agenda</p>
+  <h2 class="sec-title">Separa tu Cita</h2>
+  <p class="sec-sub">Elige el tipo de consulta que mejor se adapte a tus necesidades</p>
+  <div class="price-grid">
+    <div class="price-card">
+      <h3>Consulta Estándar</h3>
+      <div class="price-duration"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>30 minutos</div>
+      <div class="price-amount">$300 <span>USD</span></div>
+      <hr class="price-divider"/>
+      <div class="price-feature"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Evaluación médica completa</div>
+      <div class="price-feature"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Revisión de estudios previos</div>
+      <div class="price-feature"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Diagnóstico profesional</div>
+      <div class="price-feature"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Plan de tratamiento inicial</div>
+      <button class="btn-price btn-price-outline">Agendar Consulta Estándar</button>
+    </div>
+    <div class="price-card featured">
+      <div class="price-badge">Más Popular</div>
+      <h3>Consulta Premium</h3>
+      <div class="price-duration"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>60 minutos</div>
+      <div class="price-amount">$600 <span>USD</span></div>
+      <hr class="price-divider"/>
+      <div class="price-feature"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Todo lo incluido en consulta estándar</div>
+      <div class="price-feature"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Tiempo extendido de consulta</div>
+      <div class="price-feature"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Segunda opinión detallada</div>
+      <div class="price-feature"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Análisis exhaustivo de opciones</div>
+      <div class="price-feature"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Seguimiento post-consulta</div>
+      <button class="btn-price btn-price-solid">Agendar Consulta Premium</button>
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER: TESTIMONIOS -->
+<div class="section-divider" id="testimonios">
+  <div class="section-divider-label">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Testimonios
+  </div>
+</div>
+
+<!-- TESTIMONIOS — ID AÑADIDO -->
+<section class="testimonials">
+  <p class="sec-tag">Reseñas</p>
+  <h2 class="sec-title">Lo que Dicen Nuestros Pacientes</h2>
+  <p class="sec-sub">Miles de pacientes han confiado en nuestra atención</p>
+  <div class="test-grid">
+    <div class="test-card">
+      <div class="test-top"><div class="stars">★★★★★</div><div class="quote-icon">"</div></div>
+      <p>"El Dr. Viafara es un excelente profesional. Me sentí en las mejores manos durante todo el proceso. Su equipo es muy atento y las instalaciones son de primera."</p>
+      <div class="test-author"><div class="avatar">MG</div><div><div class="author-name">María González</div><div class="author-proc">Cirugía Laparoscópica</div></div></div>
+    </div>
+    <div class="test-card">
+      <div class="test-top"><div class="stars">★★★★★</div><div class="quote-icon">"</div></div>
+      <p>"Después de años luchando con mi peso, el Dr. Viafara me dio una nueva oportunidad de vida. El seguimiento postoperatorio ha sido excepcional."</p>
+      <div class="test-author"><div class="avatar">RS</div><div><div class="author-name">Roberto Sánchez</div><div class="author-proc">Cirugía Bariátrica</div></div></div>
+    </div>
+    <div class="test-card">
+      <div class="test-top"><div class="stars">★★★★★</div><div class="quote-icon">"</div></div>
+      <p>"Profesionalismo y calidez humana. El doctor explicó todo el procedimiento con claridad y me dio mucha confianza. Los resultados fueron excelentes."</p>
+      <div class="test-author"><div class="avatar">AM</div><div><div class="author-name">Ana Martínez</div><div class="author-proc">Cirugía de Tiroides</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER: CONTACTO -->
+<div class="section-divider" id="contacto">
+  <div class="section-divider-label">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Contáctanos
+  </div>
+</div>
+
+<!-- CONTACTO -->
+<section class="contact">
+  <p class="sec-tag">Contacto</p>
+  <h2 class="sec-title">Contacto</h2>
+  <p class="sec-sub">Estamos aquí para responder tus preguntas y agendar tu consulta</p>
+  <div class="contact-grid">
+    <div class="contact-info">
+      <h3>Información de Contacto</h3>
+      <div class="contact-item">
+        <div class="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <div><h4>Dirección</h4><p>Av. Paseo de la Reforma 476<br/>Colonia Juárez, CDMX 06600</p></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.07 11.5 19.79 19.79 0 011 2.18 2 2 0 013 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div>
+        <div><h4>Teléfono</h4><p>+52 55 1234 5678<br/>+52 55 8765 4321</p></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+        <div><h4>Email</h4><p>contacto@drborisviafara.com<br/>citas@drborisviafara.com</p></div>
+      </div>
+    </div>
+    <div>
+      <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:1.2rem">Ubicación</h3>
+      <div class="contact-map">
+        <div style="text-align:center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="#2563eb" stroke-width="1.5" style="margin-bottom:.8rem;opacity:.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <p style="font-weight:600;color:#2563eb;margin-bottom:.3rem">Av. Paseo de la Reforma 476</p>
+          <p style="font-size:.85rem;color:#6b7280">Juárez, Cuauhtémoc, 06600<br/>Ciudad de México, CDMX</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <span class="logo">Dr. Boris Viafara</span>
+      <p>Cirugía de alta especialidad con más de 15 años de experiencia al servicio de tu salud.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Enlaces Rápidos</h4>
+      <ul>
+        <li><a href="#inicio">Inicio</a></li>
+        <li><a href="#sobre">Sobre Mí</a></li>
+        <li><a href="#especialidades">Especialidades</a></li>
+        <li><a href="#por-que">¿Por Qué Elegirnos?</a></li>
+        <li><a href="#cita">Separar Cita</a></li>
+        <li><a href="#testimonios">Testimonios</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Especialidades</h4>
+      <ul>
+        <li><a href="#especialidades">Cirugía Laparoscópica</a></li>
+        <li><a href="#especialidades">Cirugía General</a></li>
+        <li><a href="#especialidades">Cirugía Bariátrica</a></li>
+        <li><a href="#especialidades">Cirugía de Tiroides</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Síguenos</h4>
+      <div class="social-icons">
+        <a href="#" class="social-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+        <a href="#" class="social-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
+        <a href="#" class="social-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg></a>
+        <a href="#" class="social-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Dr. Boris Viafara. Todos los derechos reservados.</p>
+    <p>Cédula Profesional: 1234567 | Cédula de Especialidad: 7654321</p>
+  </div>
+</footer>
+
+<div class="chat-fab">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+</div>
+
+<script>
+  // Hamburger menu toggle
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    mobileMenu.classList.toggle('open');
+  });
+
+  // Close mobile menu when a link is clicked
+  mobileMenu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      hamburger.classList.remove('open');
+      mobileMenu.classList.remove('open');
+    });
+  });
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === `#${id}`) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  }, { threshold: 0.4 });
+
+  sections.forEach(section => observer.observe(section));
+</script>
+
+</body>
+</html>
