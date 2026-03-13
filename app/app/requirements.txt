@@ -1,6 +1,3 @@
-Estas son las tecnologias que estamos utilizando en el proyecto:
-Descargar:
-
 fastapi
 uvicorn
 sqlalchemy
