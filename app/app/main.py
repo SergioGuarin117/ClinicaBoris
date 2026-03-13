@@ -13,6 +13,8 @@ app = FastAPI(
     version="1.0.0",
 )
 
+Base.metadata.create_all(bind=engine)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],   # ajusta en producción
