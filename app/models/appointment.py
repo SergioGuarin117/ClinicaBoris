@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.database import Base
+from database import Base
 
 
 class AppointmentStatus(str, enum.Enum):
@@ -20,7 +20,7 @@ class Appointment(Base):
 
     # ── Trazabilidad de usuario ──────────────────────────────────────────────
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    user = relationship("User", back_populates="appointments")
+    user = relationship("User", back_populates="appointments", foreign_keys=[user_id])
 
     # ── Fecha y hora de la cita ──────────────────────────────────────────────
     fecha_cita = Column(DateTime(timezone=True), nullable=False)

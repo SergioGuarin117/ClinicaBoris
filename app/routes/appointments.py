@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, field_validator
 
-from app.database import get_db
-from app.models.appointment import Appointment, AppointmentStatus
-from app.models.user import User
+from database import get_db
+from models.appointment import Appointment, AppointmentStatus
+from models.user import User
 
 router = APIRouter(prefix="/api/appointments", tags=["appointments"])
 
