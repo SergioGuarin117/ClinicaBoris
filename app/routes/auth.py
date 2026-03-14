@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr, field_validator, model_validator
 from passlib.context import CryptContext
 
-from app.database import get_db
-from app.models.user import User
+from database import get_db
+from models.user import User
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
