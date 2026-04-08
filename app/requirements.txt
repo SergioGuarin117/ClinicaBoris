@@ -11,3 +11,6 @@ aiofiles
 email-validator
 httpx
 python-multipart
+httpx
+pytest
+pytest-asyncio
