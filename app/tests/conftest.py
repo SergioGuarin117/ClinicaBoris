@@ -1,4 +1,3 @@
-import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import create_engine
@@ -6,14 +5,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 import os
 
-# Establecer variable de entorno ANTES de importar cualquier cosa del proyecto
-# Esto hace que database.py use SQLite en vez de PostgreSQL
 os.environ["DATABASE_URL"] = "sqlite://"
 
-SQLALCHEMY_DATABASE_URL = "sqlite://"  # En memoria pura, sin archivo
-
 engine_test = create_engine(
-    SQLALCHEMY_DATABASE_URL,
+    "sqlite://",
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
@@ -22,11 +17,9 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 @pytest_asyncio.fixture
 async def client():
-    # Importar DESPUÉS de setear DATABASE_URL
     from database import Base, get_db
     from main import app
 
-    # Crear todas las tablas en SQLite en memoria
     Base.metadata.create_all(bind=engine_test)
 
     def override_get_db():
@@ -45,3 +38,33 @@ async def client():
 
     Base.metadata.drop_all(bind=engine_test)
     app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def usuario_registrado(client):
+    payload = {
+        "nombre": "Ana",
+        "apellido": "García",
+        "cedula": "9876543210",
+        "email": "ana@clinicaboris.com",
+        "password": "Segura@123",
+        "habeas_data": True,
+        "rol": "paciente",
+    }
+    resp = await client.post("/api/auth/register", json=payload)
+    data = resp.json()
+    data["password"] = "Segura@123"
+    return data
+
+
+@pytest_asyncio.fixture
+async def auth_headers(client, usuario_registrado):
+    resp = await client.post(
+        "/api/auth/login",
+        data={
+            "username": usuario_registrado["email"],
+            "password": usuario_registrado["password"],
+        },
+    )
+    token = resp.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
