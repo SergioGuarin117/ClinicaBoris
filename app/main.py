@@ -1,3 +1,7 @@
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -8,13 +12,17 @@ from routes.appointments import router as appointments_router
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-# Crea las tablas si no existen (en producción usa Alembic)
-Base.metadata.create_all(bind=engine)
+# Crea las tablas si no existen (en producción usa Alembic)    
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    yield    
 
 app = FastAPI(
-    title="ClinicaBoris API",
-    version="1.0.0",
-)
+    title= "ClinicaBoris",
+    version= "1.0.0",
+    lifespan=lifespan)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,17 +35,20 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(appointments_router)
 
-@app.get("/")
-def serve_index():
-    return FileResponse("/front/src/index.html")
+if os.path.exists("/front/src"):
+    from fastapi.staticfiles import StaticFiles
+    from fastapi.responses import FileResponse
+    @app.get("/")
+    def serve_index():
+        return FileResponse("/front/src/index.html")
 
-@app.get("/register")
-def serve_register():
-    return FileResponse("/front/src/registro-paciente.html")
+    @app.get("/register")
+    def serve_register():
+        return FileResponse("/front/src/registro-paciente.html")
 
-@app.get("/login")
-def serve_login():
-    return FileResponse("/front/src/login.html")
+    @app.get("/login")
+    def serve_login():
+        return FileResponse("/front/src/login.html")
 
-# Monta la carpeta del frontend
-app.mount("/static", StaticFiles(directory="/front/src"), name="static")
+    # Monta la carpeta del frontend
+    app.mount("/static", StaticFiles(directory="/front/src"), name="static")
