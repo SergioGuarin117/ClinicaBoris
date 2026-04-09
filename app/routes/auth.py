@@ -174,8 +174,7 @@ class RegisterResponse(BaseModel):
     telefono: Optional[str]
     rol: str
     habeas_data: bool
-    tipo_consulta: Optional[str] = None
-
+    
     model_config = {"from_attributes": True}
 
 
@@ -193,7 +192,6 @@ class MeResponse(BaseModel):
     apellido: str
     email: str
     rol: str
-    tipo_consulta: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
@@ -222,7 +220,7 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
         hashed_password=pwd_context.hash(payload.password),
         rol=payload.rol,
         habeas_data=payload.habeas_data,
-        tipo_consulta=payload.tipo_consulta,
+        
     )
     db.add(user)
     db.commit()
