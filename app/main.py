@@ -50,5 +50,13 @@ if os.path.exists("/front/src"):
     def serve_login():
         return FileResponse("/front/src/login.html")
 
+    @app.get("/dashboard")
+    def serve_dashboard():
+        return FileResponse("/front/src/registro.citas.html")
+        
+    @app.get("/dashboard")
+    def serve_dashboard():
+        return FileResponse("/front/src/estadisticas.html")
+
     # Monta la carpeta del frontend
     app.mount("/static", StaticFiles(directory="/front/src"), name="static")
