@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agenda Médica</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Instrument+Serif&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -70,6 +71,20 @@
     .header-logo-text span:last-child {
       font-size: 10px; color: var(--text-3); letter-spacing: 0.8px; text-transform: uppercase;
     }
+    .admin-badge {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-2);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px 4px 6px;
+    }
+    .admin-avatar {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 600; color: white; letter-spacing: 0.5px;
+    }
     .nav-links { display: flex; gap: 4px; }
     .nav-link {
       padding: 6px 14px; border-radius: 8px; font-size: 13px;
@@ -91,9 +106,7 @@
     .main { max-width: 1180px; margin: 0 auto; padding: 2rem; }
 
     /* ── Page title ── */
-    .page-title {
-      margin-bottom: 1.75rem;
-    }
+    .page-title { margin-bottom: 1.75rem; }
     .page-title h1 {
       font-family: var(--serif);
       font-size: 32px; font-weight: 400;
@@ -144,9 +157,7 @@
     .metric-card.active::after { opacity: 1; }
 
     .m-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .m-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-    }
+    .m-dot { width: 8px; height: 8px; border-radius: 50%; }
     .metric-card[data-estado="confirmada"] .m-dot { background: var(--confirmada-dot); }
     .metric-card[data-estado="pendiente"]  .m-dot { background: var(--pendiente-dot); }
     .metric-card[data-estado="completada"] .m-dot { background: var(--completada-dot); }
@@ -268,7 +279,6 @@
     tbody tr:hover { background: var(--surface-2); }
     td { padding: 14px 16px; vertical-align: middle; }
 
-    /* Avatar */
     .avatar {
       width: 34px; height: 34px; border-radius: 50%;
       display: inline-flex; align-items: center; justify-content: center;
@@ -291,9 +301,7 @@
       padding: 3px 10px; border-radius: 20px;
       font-size: 11.5px; font-weight: 500;
     }
-    .badge::before {
-      content: ''; width: 5px; height: 5px; border-radius: 50%;
-    }
+    .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
     .badge-confirmada { background: var(--confirmada-bg); color: var(--confirmada-fg); }
     .badge-confirmada::before { background: var(--confirmada-dot); }
     .badge-pendiente  { background: var(--pendiente-bg);  color: var(--pendiente-fg); }
@@ -348,8 +356,13 @@
     <div class="header-clock" id="now-label"></div>
   </div>
   <nav class="nav-links">
+    <a href="panel_admin.html"    class="nav-link">Inicio</a>
     <a href="registro.citas.html" class="nav-link active">Citas</a>
-    <a href="estadisticas.html" class="nav-link">Estadísticas</a>
+    <a href="estadisticas.html"   class="nav-link">Estadísticas</a>
+    <div class="admin-badge">
+      <div class="admin-avatar">AD</div>
+      Administrador
+    </div>
   </nav>
 </header>
 
@@ -389,7 +402,6 @@
     </div>
   </div>
 
-</header>
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="filter-group">
@@ -459,7 +471,6 @@ function formatFecha(dateStr) {
   return `${parseInt(d)} ${meses[parseInt(m)-1]} ${y}`;
 }
 
-// ── Reloj ────────────────────────────────────────────────────────
 function updateClock() {
   const now = new Date();
   document.getElementById('now-label').textContent =
@@ -468,7 +479,6 @@ function updateClock() {
 }
 updateClock(); setInterval(updateClock, 1000);
 
-// ── Filtro ────────────────────────────────────────────────────────
 function setFilter(f) {
   filtroActual = f;
   document.querySelectorAll('.filter-btn').forEach(b =>
@@ -480,7 +490,6 @@ function setFilter(f) {
   loadCitas();
 }
 
-// ── Orden ─────────────────────────────────────────────────────────
 function sortBy(field) {
   if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
   else { sortField = field; sortDir = 'asc'; }
@@ -498,13 +507,11 @@ function sortBy(field) {
   loadCitas();
 }
 
-// ── Debounce ──────────────────────────────────────────────────────
 function debounceLoad() {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(loadCitas, 350);
 }
 
-// ── Carga datos ───────────────────────────────────────────────────
 async function loadCitas() {
   const buscar = document.getElementById('search').value.trim();
   const params = new URLSearchParams({
@@ -543,7 +550,6 @@ function setStatus(type, msg = '') {
   if (type) bar.classList.add(type);
 }
 
-// ── Métricas ──────────────────────────────────────────────────────
 function renderMetrics(conteos) {
   ['confirmada','pendiente','completada','cancelada'].forEach(e => {
     const el = document.getElementById('cnt-' + e);
@@ -551,7 +557,6 @@ function renderMetrics(conteos) {
   });
 }
 
-// ── Tabla ─────────────────────────────────────────────────────────
 function renderTable(citas) {
   const tbody = document.getElementById('tbody');
   const count = document.getElementById('footer-count');
