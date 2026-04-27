@@ -70,6 +70,13 @@
     .header-logo-text span:last-child {
       font-size: 10px; color: var(--text-3); letter-spacing: 0.8px; text-transform: uppercase;
     }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-link {
+      padding: 6px 14px; border-radius: 8px; font-size: 13px;
+      text-decoration: none; color: var(--text-2); transition: background 0.12s;
+    }
+    .nav-link:hover { background: var(--surface-2); }
+    .nav-link.active { background: var(--text); color: #fff; }
     .header-right {
       display: flex; align-items: center; gap: 16px;
     }
@@ -340,6 +347,10 @@
   <div class="header-right">
     <div class="header-clock" id="now-label"></div>
   </div>
+  <nav class="nav-links">
+    <a href="registro.citas.html" class="nav-link active">Citas</a>
+    <a href="estadisticas.html" class="nav-link">Estadísticas</a>
+  </nav>
 </header>
 
 <main class="main">
@@ -378,6 +389,7 @@
     </div>
   </div>
 
+</header>
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="filter-group">
