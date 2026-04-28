@@ -252,8 +252,31 @@ def get_estadisticas(db: Session = Depends(get_db)):
 
     except Exception as exc:
         return JSONResponse({"error": str(exc)}, status_code=500)
+class UserBusquedaResponse(BaseModel):
+    id: int
+    nombre: str
+    apellido: str
+    cedula: str
+    email: str
+    telefono: Optional[str]
 
-
+    model_config = {"from_attributes": True}
+@router.get(
+    "/buscar-usuario",
+    response_model=UserBusquedaResponse,
+    summary="Buscar paciente por cédula",
+)
+def buscar_usuario_por_cedula(
+    cedula: str = Query(..., description="Cédula del paciente"),
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(User.cedula == cedula).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No se encontró ningún paciente con cédula '{cedula}'.",
+        )
+    return user
 # ─── Endpoints CRUD ───────────────────────────────────────────────────────────
 
 @router.post(
@@ -332,3 +355,18 @@ def delete_appointment(appointment_id: int, db: Session = Depends(get_db)):
     appt = get_appointment_or_404(appointment_id, db)
     db.delete(appt)
     db.commit()
+
+# ─── Buscar usuario por cédula (para el panel admin) ─────────────────────────
+# Pega este endpoint al final de routes/appointments.py
+
+class UserBusquedaResponse(BaseModel):
+    id: int
+    nombre: str
+    apellido: str
+    cedula: str
+    email: str
+    telefono: Optional[str]
+
+    model_config = {"from_attributes": True}
+
+
