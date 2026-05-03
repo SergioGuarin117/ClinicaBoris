@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Historial Clínico — Panel Cirujano</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Instrument+Serif&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#EEF2F7;--surface:#FFFFFF;--surface-2:#F0F4F9;--border:#D6E0EE;--border-dark:#A8BEDB;--text:#1A2332;--text-2:#4A5568;--text-3:#8FA3BE;--radius:12px;--font:'DM Sans',sans-serif;--serif:'Instrument Serif',serif;--mono:'DM Mono',monospace;}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;position:relative;overflow-x:hidden;}
+    .bg-dots{position:fixed;inset:0;background-image:radial-gradient(circle,rgba(59,111,212,0.18) 1.2px,transparent 1.2px);background-size:26px 26px;pointer-events:none;z-index:0;mask-image:radial-gradient(ellipse 95% 90% at 50% 50%,black 30%,transparent 100%);-webkit-mask-image:radial-gradient(ellipse 95% 90% at 50% 50%,black 30%,transparent 100%);}
+    .bg-glow{position:fixed;pointer-events:none;z-index:0;border-radius:50%;filter:blur(65px);}
+    .bg-glow-1{top:-140px;right:-140px;width:580px;height:580px;background:rgba(59,111,212,0.22);}
+    .bg-glow-2{bottom:-120px;left:-120px;width:500px;height:500px;background:rgba(45,156,219,0.18);}
+    .bg-lines{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+    .bg-lines::before,.bg-lines::after{content:'';position:absolute;top:-60%;width:2px;height:220%;}
+    .bg-lines::before{left:9%;background:linear-gradient(to bottom,transparent 0%,rgba(59,111,212,0.22) 30%,rgba(59,111,212,0.32) 50%,rgba(59,111,212,0.22) 70%,transparent 100%);transform:rotate(14deg);}
+    .bg-lines::after{right:13%;background:linear-gradient(to bottom,transparent 0%,rgba(45,156,219,0.18) 30%,rgba(45,156,219,0.26) 50%,rgba(45,156,219,0.18) 70%,transparent 100%);transform:rotate(14deg);}
+    .bg-arc{position:fixed;top:-300px;left:50%;transform:translateX(-50%);width:900px;height:600px;border-radius:50%;border:1.5px solid rgba(59,111,212,0.12);pointer-events:none;z-index:0;}
+    .bg-arc::after{content:'';position:absolute;top:40px;left:40px;right:40px;bottom:40px;border-radius:50%;border:1px solid rgba(59,111,212,0.07);}
+    .header,.main,.toast-wrap,.modal-overlay{position:relative;z-index:1;}
+    .header{background:#1A2332;border-bottom:1px solid rgba(255,255,255,0.08);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:10;}
+    .header-logo{display:flex;align-items:center;gap:10px;}
+    .header-logo-icon{width:30px;height:30px;background:#3B6FD4;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+    .header-logo-icon svg{color:white;}
+    .header-logo-text{display:flex;flex-direction:column;}
+    .header-logo-text span:first-child{font-family:var(--serif);font-size:17px;color:#FFFFFF;line-height:1.1;}
+    .header-logo-text span:last-child{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.8px;text-transform:uppercase;}
+    .header-right{display:flex;align-items:center;gap:14px;}
+    .header-clock{font-size:12px;color:rgba(255,255,255,0.5);font-family:var(--mono);background:rgba(255,255,255,0.08);padding:5px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);}
+    .admin-badge{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:4px 12px 4px 6px;}
+    .admin-avatar{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:white;letter-spacing:0.5px;}
+    .nav-links{display:flex;gap:4px;}
+    .nav-link{padding:6px 14px;border-radius:8px;font-size:13px;text-decoration:none;color:rgba(255,255,255,0.55);transition:background 0.12s;}
+    .nav-link:hover{background:rgba(255,255,255,0.1);color:#fff;}
+    .nav-link.active{background:#3B6FD4;color:#fff;}
+    .toast-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:9999;pointer-events:none;}
+    .toast{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:12px;min-width:300px;max-width:380px;box-shadow:0 8px 30px rgba(26,35,50,0.18);border:1px solid transparent;pointer-events:all;animation:toastIn 0.28s cubic-bezier(0.34,1.56,0.64,1) both;position:relative;overflow:hidden;}
+    @keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(0.96)}to{opacity:1;transform:none}}
+    @keyframes toastOut{to{opacity:0;transform:translateY(8px) scale(0.96)}}
+    .toast-error{background:#FFF1F2;border-color:#fca5a5;color:#881337;}
+    .toast-success{background:#E0F5EC;border-color:#6ee7b7;color:#0D6B3B;}
+    .toast-info{background:#EBF1FB;border-color:#93b4f0;color:#1E3A7A;}
+    .toast-icon-wrap{width:32px;height:32px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;}
+    .toast-error .toast-icon-wrap{background:#FFE4E6;}
+    .toast-success .toast-icon-wrap{background:#D1FAE5;}
+    .toast-info .toast-icon-wrap{background:#DBEAFE;}
+    .toast-body{flex:1;min-width:0;}
+    .toast-title{font-size:13px;font-weight:600;margin-bottom:2px;}
+    .toast-msg{font-size:12px;opacity:0.82;line-height:1.45;}
+    .toast-close{background:none;border:none;cursor:pointer;color:inherit;opacity:0.45;font-size:15px;padding:0;line-height:1;flex-shrink:0;transition:opacity 0.12s;}
+    .toast-close:hover{opacity:0.9;}
+    .toast-progress{position:absolute;bottom:0;left:0;height:3px;border-radius:0 0 12px 12px;animation:progressBar linear forwards;}
+    .toast-error .toast-progress{background:#e11d48;}
+    .toast-success .toast-progress{background:#16a34a;}
+    .toast-info .toast-progress{background:#3B6FD4;}
+    @keyframes progressBar{from{width:100%}to{width:0%}}
+    .main{max-width:1100px;margin:0 auto;padding:2rem;}
+
+    /* ── Page header ── */
+    .page-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:12px;}
+    .page-header-left h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--text);line-height:1.1;}
+    .page-header-left p{font-size:13px;color:var(--text-3);margin-top:4px;}
+    .btn-nueva{display:inline-flex;align-items:center;gap:7px;background:#3B6FD4;color:#fff;border:none;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;transition:opacity 0.12s,transform 0.1s;white-space:nowrap;}
+    .btn-nueva:hover{opacity:0.88;transform:translateY(-1px);}
+
+    /* ── Buscador ── */
+    .search-bar{display:flex;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:6px 6px 6px 16px;margin-bottom:1.5rem;transition:border-color 0.12s,box-shadow 0.12s;}
+    .search-bar:focus-within{border-color:#3B6FD4;box-shadow:0 0 0 3px rgba(59,111,212,0.1);}
+    .search-bar input{flex:1;background:transparent;border:none;outline:none;font-size:14px;font-family:var(--font);color:var(--text);}
+    .search-bar input::placeholder{color:var(--text-3);}
+    .btn-buscar{padding:9px 20px;background:#3B6FD4;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;display:flex;align-items:center;gap:6px;transition:opacity 0.12s;white-space:nowrap;flex-shrink:0;}
+    .btn-buscar:hover{opacity:0.85;}
+    .btn-buscar:disabled{opacity:0.5;cursor:not-allowed;}
+    .pac-encontrado{display:none;padding:10px 14px;background:#E2F5EC;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;color:#14532D;margin-bottom:1rem;}
+    .pac-no-encontrado{display:none;padding:10px 14px;background:#FFE4E6;border:1px solid #fca5a5;border-radius:8px;font-size:13px;color:#881337;margin-bottom:1rem;}
+
+    /* ── KPIs ── */
+    .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem;}
+    .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;position:relative;overflow:hidden;}
+    .kpi-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+    .kpi-blue::before{background:#3B6FD4;}.kpi-green::before{background:#1D9E75;}.kpi-amber::before{background:#d97706;}
+    .kpi-val{font-size:26px;font-weight:600;font-family:var(--mono);color:var(--text);line-height:1;}
+    .kpi-lbl{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.6px;margin-top:4px;font-weight:500;}
+
+    /* ── Layout principal ── */
+    .hist-grid{display:grid;grid-template-columns:300px 1fr;gap:16px;}
+
+    /* ── Panel izquierdo: info paciente ── */
+    .pac-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;position:sticky;top:80px;}
+    .pac-card-banner{background:#1A2332;padding:1.5rem;text-align:center;}
+    .pac-avatar{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:22px;font-weight:500;margin:0 auto 10px;border:2px solid rgba(255,255,255,0.15);}
+    .pac-nombre{font-family:var(--serif);font-size:18px;font-weight:500;color:#fff;margin-bottom:4px;}
+    .pac-cedula{font-size:12px;color:rgba(255,255,255,0.5);font-family:var(--mono);}
+    .pac-card-body{padding:1rem;}
+    .pac-info-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
+    .pac-info-row:last-child{border-bottom:none;}
+    .pac-info-label{color:var(--text-3);}
+    .pac-info-val{color:var(--text);font-weight:500;text-align:right;max-width:140px;word-break:break-word;}
+    .empty-pac{text-align:center;padding:2rem 1rem;color:var(--text-3);font-size:13px;}
+    .empty-pac svg{opacity:0.3;margin-bottom:8px;}
+
+    /* ── Panel derecho: notas ── */
+    .notas-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+    .notas-title{font-size:14px;font-weight:600;color:var(--text);}
+    .notas-sub{font-size:12px;color:var(--text-3);margin-top:2px;}
+    .btn-nueva-nota{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#3B6FD4;color:#fff;border:none;border-radius:8px;font-size:12.5px;font-weight:500;font-family:var(--font);cursor:pointer;transition:opacity 0.12s;}
+    .btn-nueva-nota:hover{opacity:0.85;}
+
+    /* Filtros tipo notas */
+    .tipo-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem;}
+    .tipo-tab{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-family:var(--font);cursor:pointer;color:var(--text-2);transition:all 0.12s;font-weight:500;}
+    .tipo-tab:hover{border-color:#3B6FD4;color:#3B6FD4;}
+    .tipo-tab.active{background:#3B6FD4;color:#fff;border-color:#3B6FD4;}
+
+    /* Nota card */
+    .nota-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.25rem;margin-bottom:10px;transition:box-shadow 0.15s;animation:fadeIn 0.2s ease both;}
+    .nota-card:hover{box-shadow:0 4px 16px rgba(26,35,50,0.08);}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .nota-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .nota-tipo-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;}
+    .tipo-consulta{background:#EBF1FB;color:#1E3A7A;}
+    .tipo-cirugia{background:#FFE4E6;color:#881337;}
+    .tipo-seguimiento{background:#E2F5EC;color:#14532D;}
+    .tipo-urgencia{background:#FEF3C7;color:#78350F;}
+    .tipo-otro{background:var(--surface-2);color:var(--text-2);}
+    .nota-fecha{font-size:11px;color:var(--text-3);font-family:var(--mono);}
+    .nota-texto{font-size:13.5px;color:var(--text-2);line-height:1.7;white-space:pre-wrap;}
+    .nota-footer{display:flex;justify-content:flex-end;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+    .btn-nota-action{padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:transparent;font-size:12px;font-family:var(--font);cursor:pointer;color:var(--text-2);transition:all 0.12s;display:flex;align-items:center;gap:5px;}
+    .btn-nota-action:hover{border-color:#3B6FD4;color:#3B6FD4;background:#EBF1FB;}
+    .btn-nota-action.del:hover{border-color:#fca5a5;color:#dc2626;background:#fff1f2;}
+    .empty-notas{text-align:center;padding:4rem 2rem;color:var(--text-3);font-size:13px;background:var(--surface);border:1px dashed var(--border);border-radius:12px;}
+    .empty-notas svg{opacity:0.3;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;}
+
+    /* ── Modal ── */
+    .modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(26,35,50,0.55);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+    .modal-overlay.open{opacity:1;pointer-events:all;}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;box-shadow:0 24px 60px rgba(26,35,50,0.22);transform:translateY(12px) scale(0.98);transition:transform 0.22s,opacity 0.2s;opacity:0;}
+    .modal-overlay.open .modal{transform:translateY(0) scale(1);opacity:1;}
+    .modal-header{padding:1.4rem 1.5rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .modal-title{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--text);}
+    .modal-subtitle{font-size:12px;color:var(--text-3);margin-top:2px;}
+    .modal-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-2);font-size:16px;transition:all 0.12s;}
+    .modal-close:hover{background:var(--surface-2);}
+    .modal-body{padding:1.4rem 1.5rem;display:flex;flex-direction:column;gap:1rem;}
+    .field{display:flex;flex-direction:column;gap:5px;}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    label{font-size:11.5px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:0.5px;}
+    .field input,.field select,.field textarea{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13.5px;font-family:var(--font);background:var(--surface);color:var(--text);outline:none;transition:border-color 0.12s,box-shadow 0.12s;width:100%;}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:#3B6FD4;box-shadow:0 0 0 3px rgba(59,111,212,0.1);}
+    .field textarea{resize:vertical;min-height:140px;line-height:1.65;}
+    .field input::placeholder,.field textarea::placeholder{color:var(--text-3);}
+    .field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238FA3BE' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px;}
+    .modal-footer{padding:1rem 1.5rem 1.4rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+    .btn-cancel{padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:13px;font-family:var(--font);cursor:pointer;color:var(--text-2);transition:all 0.12s;}
+    .btn-save{padding:8px 20px;border-radius:8px;border:none;background:#3B6FD4;color:#fff;font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;transition:opacity 0.12s;}
+    .btn-save:hover{opacity:0.85;}
+    .btn-save:disabled{opacity:0.4;cursor:not-allowed;}
+    .modal-confirm .modal-body{align-items:center;text-align:center;padding:2rem 1.5rem;}
+    .confirm-icon{font-size:36px;margin-bottom:12px;}
+    .confirm-title{font-family:var(--serif);font-size:20px;margin-bottom:6px;}
+    .confirm-desc{font-size:13px;color:var(--text-2);line-height:1.6;}
+    .btn-delete{padding:8px 20px;border-radius:8px;border:none;background:#dc2626;color:#fff;font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;transition:opacity 0.12s;}
+    .btn-delete:hover{opacity:0.85;}
+    .spinner-inline{width:13px;height:13px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    @media(max-width:900px){.hist-grid{grid-template-columns:1fr}.pac-card{position:static;}}
+    @media(max-width:768px){.main{padding:1rem}.header{padding:0 1rem}.kpi-row{grid-template-columns:1fr 1fr}.field-row{grid-template-columns:1fr}.page-header{flex-direction:column;align-items:flex-start;}}
+  </style>
+</head>
+<body>
+<div class="bg-dots"></div><div class="bg-lines"></div>
+<div class="bg-glow bg-glow-1"></div><div class="bg-glow bg-glow-2"></div>
+<div class="bg-arc"></div>
+<header class="header">
+  <div class="header-logo">
+    <div class="header-logo-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+    <div class="header-logo-text"><span>Agenda Médica</span><span>Panel cirujano</span></div>
+  </div>
+  <div class="header-right"><div class="header-clock" id="now-label"></div></div>
+    <nav class="nav-links">
+    <a href="panel_cirujano.html" class="nav-link"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio</a>
+    <a href="registro.citas_cirujano.html" class="nav-link"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Citas</a>
+    <a href="estadisticas_cirujano.html" class="nav-link"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Estadísticas</a>
+    <a href="pagos_cirujano.html" class="nav-link"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Pagos</a>
+    <a href="pacientes_cirujano.html" class="nav-link"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Pacientes</a>
+    <a href="historial_clinico.html" class="nav-link active"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Historial</a>
+    <a href="configuracion_cirujano.html" class="nav-link"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configuración</a>
+    <div class="admin-badge"><div class="admin-avatar" style="background:#1D9E75">DR</div>Dr. Boris Viafara</div>
+  </nav>
+</header>
+
+<main class="main">
+  <!-- Encabezado -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1>Historial Clínico</h1>
+      <p>Registra y consulta las notas clínicas de tus pacientes</p>
+    </div>
+    <button class="btn-nueva" onclick="openModalNueva()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      Nueva nota clínica
+    </button>
+  </div>
+
+  <!-- Buscador -->
+  <div class="search-bar">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FA3BE" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    <input type="text" id="input-cedula" placeholder="Buscar por cédula del paciente…" onkeydown="if(event.key==='Enter')buscarPaciente()"/>
+    <button class="btn-buscar" id="btn-buscar" onclick="buscarPaciente()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Buscar
+    </button>
+  </div>
+  <div class="pac-encontrado" id="pac-encontrado">✓ Mostrando historial de: <strong id="pac-nombre-label">—</strong></div>
+  <div class="pac-no-encontrado" id="pac-no-encontrado">✕ No se encontró ningún paciente con esa cédula.</div>
+
+  <!-- KPIs -->
+  <div class="kpi-row" id="kpi-row" style="display:none">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-val" id="kpi-total-notas">0</div>
+      <div class="kpi-lbl">Total de notas</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-val" id="kpi-ultima-fecha">—</div>
+      <div class="kpi-lbl">Última nota</div>
+    </div>
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-val" id="kpi-tipo-frecuente">—</div>
+      <div class="kpi-lbl">Tipo más frecuente</div>
+    </div>
+  </div>
+
+  <!-- Grid principal -->
+  <div class="hist-grid" id="hist-grid" style="display:none">
+
+    <!-- Izquierda: datos del paciente -->
+    <div>
+      <div class="pac-card">
+        <div class="pac-card-banner">
+          <div class="pac-avatar" id="pac-avatar">—</div>
+          <div class="pac-nombre" id="pac-nombre">—</div>
+          <div class="pac-cedula" id="pac-cedula-display">—</div>
+        </div>
+        <div class="pac-card-body">
+          <div class="pac-info-row"><span class="pac-info-label">Email</span><span class="pac-info-val" id="pac-email">—</span></div>
+          <div class="pac-info-row"><span class="pac-info-label">Teléfono</span><span class="pac-info-val" id="pac-telefono">—</span></div>
+          <div class="pac-info-row"><span class="pac-info-label">Registro</span><span class="pac-info-val" id="pac-registro">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Derecha: notas clínicas -->
+    <div>
+      <div class="notas-header">
+        <div>
+          <div class="notas-title">Notas clínicas</div>
+          <div class="notas-sub" id="notas-sub">—</div>
+        </div>
+        <button class="btn-nueva-nota" onclick="openModalNueva()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Nueva nota
+        </button>
+      </div>
+
+      <!-- Filtro por tipo -->
+      <div class="tipo-tabs">
+        <button class="tipo-tab active" data-tipo="todos" onclick="setTipo('todos')">Todas</button>
+        <button class="tipo-tab" data-tipo="consulta"    onclick="setTipo('consulta')">Consulta</button>
+        <button class="tipo-tab" data-tipo="cirugia"     onclick="setTipo('cirugia')">Cirugía</button>
+        <button class="tipo-tab" data-tipo="seguimiento" onclick="setTipo('seguimiento')">Seguimiento</button>
+        <button class="tipo-tab" data-tipo="urgencia"    onclick="setTipo('urgencia')">Urgencia</button>
+        <button class="tipo-tab" data-tipo="otro"        onclick="setTipo('otro')">Otro</button>
+      </div>
+
+      <!-- Lista de notas -->
+      <div id="notas-lista"></div>
+    </div>
+  </div>
+
+  <!-- Estado vacío inicial -->
+  <div id="empty-state" style="text-align:center;padding:5rem 2rem;color:var(--text-3);">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="opacity:0.2;margin:0 auto 16px;display:block"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    <p style="font-size:14px;font-weight:500;color:var(--text-2);margin-bottom:6px">Busca un paciente para ver su historial</p>
+    <p style="font-size:13px">Ingresa la cédula en el buscador de arriba</p>
+  </div>
+</main>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- Modal nueva/editar nota -->
+<div class="modal-overlay" id="modal-nota" onclick="if(event.target.id==='modal-nota')closeModal('modal-nota')">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-nota-title">Nueva nota clínica</div>
+        <div class="modal-subtitle" id="modal-nota-sub">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-nota')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="nota-idx"/>
+      <!-- Búsqueda si no hay paciente activo -->
+      <div id="bloque-busqueda-modal" style="display:none">
+        <div class="field-row" style="align-items:flex-end">
+          <div class="field"><label>Cédula del paciente *</label><input type="text" id="modal-cedula" placeholder="Número de documento"/></div>
+          <button class="btn-save" style="height:38px;white-space:nowrap" onclick="buscarPacienteModal()">Buscar</button>
+        </div>
+        <div id="modal-pac-ok"  style="display:none;margin-top:8px;padding:10px 12px;background:#E2F5EC;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;color:#14532D;">✓ <strong id="modal-pac-nombre">—</strong></div>
+        <div id="modal-pac-err" style="display:none;margin-top:8px;padding:10px 12px;background:#FFE4E6;border:1px solid #fca5a5;border-radius:8px;font-size:13px;color:#881337;">✕ Paciente no encontrado.</div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Tipo de nota *</label>
+          <select id="nota-tipo">
+            <option value="consulta">Consulta</option>
+            <option value="cirugia">Cirugía</option>
+            <option value="seguimiento">Seguimiento</option>
+            <option value="urgencia">Urgencia</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Fecha *</label>
+          <input type="date" id="nota-fecha"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Diagnóstico / Observación clínica *</label>
+        <textarea id="nota-texto" placeholder="Describe el diagnóstico, hallazgos, indicaciones, evolución del paciente…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-nota')">Cancelar</button>
+      <button class="btn-save" id="btn-guardar-nota" onclick="guardarNota()">Guardar nota</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal confirmar eliminar -->
+<div class="modal-overlay" id="modal-confirmar" onclick="if(event.target.id==='modal-confirmar')closeModal('modal-confirmar')">
+  <div class="modal modal-confirm">
+    <div class="modal-header"><div><div class="modal-title">Eliminar nota</div></div><button class="modal-close" onclick="closeModal('modal-confirmar')">✕</button></div>
+    <div class="modal-body">
+      <div class="confirm-icon">🗑️</div>
+      <div class="confirm-title">¿Eliminar esta nota?</div>
+      <div class="confirm-desc">Esta acción no se puede deshacer. La nota clínica se eliminará permanentemente.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modal-confirmar')">Cancelar</button>
+      <button class="btn-delete" id="btn-confirm-del" onclick="confirmarEliminar()">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function updateClock(){const now=new Date();const el=document.getElementById('now-label');if(el)el.textContent=now.toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'})+' · '+now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});}
+updateClock();setInterval(updateClock,1000);
+const TCFG={error:{icon:'✕',title:'Error',d:5000},success:{icon:'✓',title:'Listo',d:3500},info:{icon:'ℹ',title:'Info',d:4000}};
+function showToast(type,msg,title){const wrap=document.getElementById('toast-wrap');const c=TCFG[type]||TCFG.info;const id='t'+Date.now();const el=document.createElement('div');el.id=id;el.className=`toast toast-${type}`;el.innerHTML=`<div class="toast-icon-wrap">${c.icon}</div><div class="toast-body"><div class="toast-title">${title||c.title}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" onclick="rT('${id}')">&#x2715;</button><div class="toast-progress" style="animation-duration:${c.d}ms"></div>`;wrap.appendChild(el);setTimeout(()=>rT(id),c.d);}
+function rT(id){const el=document.getElementById(id);if(!el)return;el.style.animation='toastOut 0.22s ease forwards';setTimeout(()=>el.remove(),220);}
+
+const API_USERS = 'http://localhost:8000/api/appointments/buscar-usuario';
+const HIST_KEY  = 'am_historial_clinico_v1'; // localStorage — reemplazar por API cuando exista
+
+let pacienteActual = null;   // objeto {id, cedula, nombre, apellido, ...}
+let notasActuales  = [];     // todas las notas del paciente cargado
+let tipoFiltro     = 'todos';
+let idxEliminar    = null;
+let modoEdicion    = false;
+
+/* ── Paleta avatares ── */
+const PAL=[['#D1FAE5','#065F46'],['#DBEAFE','#1E3A8A'],['#EDE9FE','#4C1D95'],['#FEF3C7','#78350F'],['#FFE4E6','#9F1239'],['#CFFAFE','#164E63'],['#FCE7F3','#831843'],['#D1FAE5','#14532D']];
+function aC(n){let h=0;for(const c of(n||'?'))h=(h*31+c.charCodeAt(0))%PAL.length;return PAL[h];}
+function ini(n){return(n||'?').trim().split(' ').slice(0,2).map(w=>w[0].toUpperCase()).join('');}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function fFecha(d){if(!d)return'—';const[y,m,dd]=d.split('-');return`${parseInt(dd)} ${MESES[parseInt(m)-1]} ${y}`;}
+
+/* ── Modales ── */
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal('modal-nota');closeModal('modal-confirmar');}});
+
+/* ── LocalStorage helpers ── */
+function getHistorial(){return JSON.parse(localStorage.getItem(HIST_KEY)||'{}');}
+function saveHistorial(hist){localStorage.setItem(HIST_KEY,JSON.stringify(hist));}
+function getNotas(cedula){return getHistorial()[cedula]||[];}
+
+/* ── Buscar paciente (barra principal) ── */
+async function buscarPaciente(){
+  const cedula=document.getElementById('input-cedula').value.trim();
+  if(!cedula){showToast('error','Ingresa una cédula.','Campo requerido');return;}
+  const btn=document.getElementById('btn-buscar');
+  btn.disabled=true;btn.innerHTML='<span class="spinner-inline"></span>';
+  document.getElementById('pac-encontrado').style.display='none';
+  document.getElementById('pac-no-encontrado').style.display='none';
+  try{
+    const res=await fetch(API_USERS+'?cedula='+encodeURIComponent(cedula));
+    if(res.status===404){document.getElementById('pac-no-encontrado').style.display='block';pacienteActual=null;document.getElementById('hist-grid').style.display='none';document.getElementById('kpi-row').style.display='none';document.getElementById('empty-state').style.display='block';return;}
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const u=await res.json();
+    pacienteActual=u;
+    cargarHistorial(u);
+    document.getElementById('pac-nombre-label').textContent=u.nombre+' '+u.apellido;
+    document.getElementById('pac-encontrado').style.display='block';
+    document.getElementById('empty-state').style.display='none';
+  }catch(err){showToast('error','Error: '+err.message,'Error de conexión');}
+  finally{btn.disabled=false;btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Buscar';}
+}
+
+/* ── Cargar y renderizar historial ── */
+function cargarHistorial(u){
+  notasActuales=getNotas(u.cedula);
+  // Panel izquierdo
+  const[bg,fg]=aC(u.nombre+' '+u.apellido);
+  const av=document.getElementById('pac-avatar');av.style.background=bg;av.style.color=fg;av.textContent=ini(u.nombre+' '+u.apellido);
+  document.getElementById('pac-nombre').textContent=u.nombre+' '+u.apellido;
+  document.getElementById('pac-cedula-display').textContent='CC '+u.cedula;
+  document.getElementById('pac-email').textContent=u.email||'—';
+  document.getElementById('pac-telefono').textContent=u.telefono||'—';
+  document.getElementById('pac-registro').textContent=u.created_at?fFecha(u.created_at.split('T')[0]):'—';
+  // KPIs
+  document.getElementById('kpi-total-notas').textContent=notasActuales.length;
+  document.getElementById('kpi-ultima-fecha').textContent=notasActuales.length?fFecha(notasActuales[0].fecha):'Sin notas';
+  if(notasActuales.length){
+    const conteo={};notasActuales.forEach(n=>{conteo[n.tipo]=(conteo[n.tipo]||0)+1;});
+    const top=Object.entries(conteo).sort((a,b)=>b[1]-a[1])[0];
+    document.getElementById('kpi-tipo-frecuente').textContent=cap(top[0]);
+  }else{document.getElementById('kpi-tipo-frecuente').textContent='—';}
+  document.getElementById('kpi-row').style.display='grid';
+  document.getElementById('hist-grid').style.display='grid';
+  renderNotas();
+}
+
+/* ── Filtro por tipo ── */
+function setTipo(t){
+  tipoFiltro=t;
+  document.querySelectorAll('.tipo-tab').forEach(b=>b.classList.toggle('active',b.dataset.tipo===t));
+  renderNotas();
+}
+
+/* ── Render notas ── */
+function renderNotas(){
+  const lista=tipoFiltro==='todos'?notasActuales:notasActuales.filter(n=>n.tipo===tipoFiltro);
+  document.getElementById('notas-sub').textContent=lista.length+' nota'+(lista.length!==1?'s':'')+' · '+cap(tipoFiltro==='todos'?'todos los tipos':tipoFiltro);
+  const el=document.getElementById('notas-lista');
+  if(!lista.length){
+    el.innerHTML=`<div class="empty-notas"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>No hay notas de este tipo para este paciente.<br><span style="font-size:12px;margin-top:4px;display:block">Haz clic en "Nueva nota" para agregar una.</span></div>`;
+    return;
+  }
+  const TIPO_CSS={consulta:'tipo-consulta',cirugia:'tipo-cirugia',seguimiento:'tipo-seguimiento',urgencia:'tipo-urgencia',otro:'tipo-otro'};
+  el.innerHTML=lista.map((n,i)=>{
+    const realIdx=notasActuales.indexOf(n);
+    return `<div class="nota-card" style="animation-delay:${i*30}ms">
+      <div class="nota-top">
+        <span class="nota-tipo-badge ${TIPO_CSS[n.tipo]||'tipo-otro'}">${cap(n.tipo)}</span>
+        <span class="nota-fecha">${fFecha(n.fecha)}</span>
+      </div>
+      <div class="nota-texto">${esc(n.texto)}</div>
+      <div class="nota-footer">
+        <button class="btn-nota-action" onclick="editarNota(${realIdx})">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar
+        </button>
+        <button class="btn-nota-action del" onclick="pedirEliminar(${realIdx})">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Eliminar
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Abrir modal nueva nota ── */
+function openModalNueva(){
+  modoEdicion=false;
+  document.getElementById('nota-idx').value='';
+  document.getElementById('nota-tipo').value='consulta';
+  document.getElementById('nota-fecha').value=new Date().toISOString().split('T')[0];
+  document.getElementById('nota-texto').value='';
+  document.getElementById('modal-nota-title').textContent='Nueva nota clínica';
+  if(pacienteActual){
+    document.getElementById('modal-nota-sub').textContent=pacienteActual.nombre+' '+pacienteActual.apellido+' · CC '+pacienteActual.cedula;
+    document.getElementById('bloque-busqueda-modal').style.display='none';
+  }else{
+    document.getElementById('modal-nota-sub').textContent='Busca el paciente por cédula';
+    document.getElementById('bloque-busqueda-modal').style.display='block';
+    document.getElementById('modal-cedula').value='';
+    document.getElementById('modal-pac-ok').style.display='none';
+    document.getElementById('modal-pac-err').style.display='none';
+  }
+  openModal('modal-nota');
+  setTimeout(()=>document.getElementById('nota-texto').focus(),250);
+}
+
+/* ── Editar nota ── */
+function editarNota(idx){
+  const n=notasActuales[idx];if(!n)return;
+  modoEdicion=true;
+  document.getElementById('nota-idx').value=idx;
+  document.getElementById('nota-tipo').value=n.tipo;
+  document.getElementById('nota-fecha').value=n.fecha;
+  document.getElementById('nota-texto').value=n.texto;
+  document.getElementById('modal-nota-title').textContent='Editar nota clínica';
+  document.getElementById('modal-nota-sub').textContent=pacienteActual.nombre+' '+pacienteActual.apellido;
+  document.getElementById('bloque-busqueda-modal').style.display='none';
+  openModal('modal-nota');
+  setTimeout(()=>document.getElementById('nota-texto').focus(),250);
+}
+
+/* ── Buscar paciente dentro del modal ── */
+async function buscarPacienteModal(){
+  const cedula=document.getElementById('modal-cedula').value.trim();
+  if(!cedula){showToast('error','Ingresa una cédula.','Requerido');return;}
+  document.getElementById('modal-pac-ok').style.display='none';
+  document.getElementById('modal-pac-err').style.display='none';
+  try{
+    const res=await fetch(API_USERS+'?cedula='+encodeURIComponent(cedula));
+    if(res.status===404){document.getElementById('modal-pac-err').style.display='block';return;}
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const u=await res.json();
+    pacienteActual=u;
+    document.getElementById('modal-pac-nombre').textContent=u.nombre+' '+u.apellido+' · CC '+u.cedula;
+    document.getElementById('modal-pac-ok').style.display='block';
+    document.getElementById('modal-nota-sub').textContent=u.nombre+' '+u.apellido+' · CC '+u.cedula;
+    notasActuales=getNotas(u.cedula);
+  }catch(err){showToast('error',err.message,'Error');}
+}
+
+/* ── Guardar nota ── */
+function guardarNota(){
+  const texto=document.getElementById('nota-texto').value.trim();
+  const tipo=document.getElementById('nota-tipo').value;
+  const fecha=document.getElementById('nota-fecha').value;
+  if(!pacienteActual){showToast('error','Primero busca un paciente.','Requerido');return;}
+  if(!texto){showToast('error','El texto de la nota no puede estar vacío.','Requerido');return;}
+  if(!fecha){showToast('error','Selecciona una fecha.','Requerido');return;}
+  const hist=getHistorial();
+  const cedula=pacienteActual.cedula;
+  if(!hist[cedula])hist[cedula]=[];
+  if(modoEdicion){
+    const idx=parseInt(document.getElementById('nota-idx').value);
+    hist[cedula][idx]={tipo,fecha,texto,ts:Date.now()};
+    showToast('success','Nota actualizada correctamente.','Guardado');
+  }else{
+    hist[cedula].unshift({tipo,fecha,texto,ts:Date.now()});
+    showToast('success','Nota clínica guardada correctamente.','Guardado');
+  }
+  saveHistorial(hist);
+  notasActuales=hist[cedula];
+  // Actualizar KPIs
+  document.getElementById('kpi-total-notas').textContent=notasActuales.length;
+  document.getElementById('kpi-ultima-fecha').textContent=fFecha(notasActuales[0].fecha);
+  const conteo={};notasActuales.forEach(n=>{conteo[n.tipo]=(conteo[n.tipo]||0)+1;});
+  const top=Object.entries(conteo).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('kpi-tipo-frecuente').textContent=cap(top[0]);
+  // Mostrar sección si estaba oculta
+  document.getElementById('kpi-row').style.display='grid';
+  document.getElementById('hist-grid').style.display='grid';
+  document.getElementById('empty-state').style.display='none';
+  closeModal('modal-nota');
+  renderNotas();
+}
+
+/* ── Eliminar nota ── */
+function pedirEliminar(idx){idxEliminar=idx;openModal('modal-confirmar');}
+function confirmarEliminar(){
+  if(idxEliminar===null||!pacienteActual)return;
+  const hist=getHistorial();
+  hist[pacienteActual.cedula].splice(idxEliminar,1);
+  saveHistorial(hist);
+  notasActuales=hist[pacienteActual.cedula]||[];
+  document.getElementById('kpi-total-notas').textContent=notasActuales.length;
+  if(notasActuales.length){document.getElementById('kpi-ultima-fecha').textContent=fFecha(notasActuales[0].fecha);const conteo={};notasActuales.forEach(n=>{conteo[n.tipo]=(conteo[n.tipo]||0)+1;});const top=Object.entries(conteo).sort((a,b)=>b[1]-a[1])[0];document.getElementById('kpi-tipo-frecuente').textContent=cap(top[0]);}
+  else{document.getElementById('kpi-ultima-fecha').textContent='Sin notas';document.getElementById('kpi-tipo-frecuente').textContent='—';}
+  closeModal('modal-confirmar');
+  idxEliminar=null;
+  showToast('success','Nota eliminada.','Listo');
+  renderNotas();
+}
+</script>
+</body>
+</html>
