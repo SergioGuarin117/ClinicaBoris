@@ -8,25 +8,27 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import Base, engine
 from routes.auth import router as auth_router
 from routes.appointments import router as appointments_router
+from routes.payments import router as payments_router
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-# Crea las tablas si no existen (en producción usa Alembic)    
+
+# Crea las tablas si no existen (en producción usa Alembic)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
-    yield    
+    yield
 
 app = FastAPI(
-    title= "ClinicaBoris API",
-    version= "1.0.0",
+    title="ClinicaBoris API",
+    version="1.0.0",
     lifespan=lifespan)
 
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # ajusta en producción
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -34,10 +36,9 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(appointments_router)
+app.include_router(payments_router)
 
 if os.path.exists("/front/src"):
-    from fastapi.staticfiles import StaticFiles
-    from fastapi.responses import FileResponse
     @app.get("/")
     def serve_index():
         return FileResponse("/front/src/index.html")
@@ -53,10 +54,5 @@ if os.path.exists("/front/src"):
     @app.get("/dashboard")
     def serve_dashboard():
         return FileResponse("/front/src/registro.citas.html")
-        
-    @app.get("/dashboard")
-    def serve_dashboard():
-        return FileResponse("/front/src/estadisticas.html")
 
-    # Monta la carpeta del frontend
     app.mount("/static", StaticFiles(directory="/front/src"), name="static")

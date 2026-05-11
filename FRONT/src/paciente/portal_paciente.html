@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi Portal — Agenda Médica</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Instrument+Serif&display=swap" rel="stylesheet" />
+  <style>
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #EEF2F7;
+      --surface:     #FFFFFF;
+      --surface-2:   #F0F4F9;
+      --border:      #D6E0EE;
+      --border-dark: #A8BEDB;
+      --text:        #1A2332;
+      --text-2:      #4A5568;
+      --text-3:      #8FA3BE;
+
+      --confirmada-bg:  #E2F5EC; --confirmada-fg: #14532D; --confirmada-dot: #16a34a;
+      --pendiente-bg:   #FEF3C7; --pendiente-fg:  #78350F; --pendiente-dot: #d97706;
+      --completada-bg:  #EBF1FB; --completada-fg: #1E3A7A; --completada-dot: #3B6FD4;
+      --cancelada-bg:   #FFE4E6; --cancelada-fg:  #881337; --cancelada-dot: #e11d48;
+
+      --blue:  #3B6FD4;
+      --green: #1D9E75;
+      --purple:#2D9CDB;
+      --red:   #E24B4A;
+      --amber: #EF9F27;
+
+      --radius: 12px;
+      --font:   'DM Sans', sans-serif;
+      --serif:  'Instrument Serif', serif;
+      --mono:   'DM Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════════════
+       DECORACIÓN DE FONDO
+    ══════════════════════════════════════ */
+
+    /* Patrón de puntos */
+    .bg-dots {
+      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, rgba(59,111,212,0.18) 1.2px, transparent 1.2px);
+      background-size: 26px 26px;
+      pointer-events: none;
+      z-index: 0;
+      mask-image: radial-gradient(ellipse 95% 90% at 50% 50%, black 30%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 95% 90% at 50% 50%, black 30%, transparent 100%);
+    }
+
+    /* Manchas de luz (glows) */
+    .bg-glow {
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      border-radius: 50%;
+      filter: blur(65px);
+    }
+    .bg-glow-1 {
+      top: -140px; right: -140px;
+      width: 580px; height: 580px;
+      background: rgba(59,111,212,0.22);
+    }
+    .bg-glow-2 {
+      bottom: -120px; left: -120px;
+      width: 500px; height: 500px;
+      background: rgba(45,156,219,0.18);
+    }
+    .bg-glow-3 {
+      top: 38%; left: 48%;
+      width: 420px; height: 420px;
+      background: rgba(59,111,212,0.09);
+      transform: translate(-50%, -50%);
+    }
+
+    /* Líneas diagonales */
+    .bg-lines {
+      position: fixed; inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-lines::before,
+    .bg-lines::after {
+      content: '';
+      position: absolute;
+      top: -60%; width: 2px; height: 220%;
+    }
+    .bg-lines::before {
+      left: 9%;
+      background: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(59,111,212,0.22) 30%,
+        rgba(59,111,212,0.32) 50%,
+        rgba(59,111,212,0.22) 70%,
+        transparent 100%);
+      transform: rotate(14deg);
+    }
+    .bg-lines::after {
+      right: 13%;
+      background: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(45,156,219,0.18) 30%,
+        rgba(45,156,219,0.26) 50%,
+        rgba(45,156,219,0.18) 70%,
+        transparent 100%);
+      transform: rotate(14deg);
+    }
+
+    /* Arco decorativo superior */
+    .bg-arc {
+      position: fixed;
+      top: -300px; left: 50%;
+      transform: translateX(-50%);
+      width: 900px; height: 600px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(59,111,212,0.12);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-arc::after {
+      content: '';
+      position: absolute;
+      top: 40px; left: 40px; right: 40px; bottom: 40px;
+      border-radius: 50%;
+      border: 1px solid rgba(59,111,212,0.07);
+    }
+
+    /* Todo el contenido va encima */
+    .header, .main, .modal-overlay { position: relative; z-index: 1; }
+
+    /* ── Header ── */
+    .header {
+      background: #1A2332;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px; position: sticky; top: 0; z-index: 10;
+    }
+    .header-logo { display: flex; align-items: center; gap: 10px; }
+    .header-logo-icon {
+      width: 30px; height: 30px; background: #3B6FD4; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .header-logo-icon svg { color: white; }
+    .header-logo-text { display: flex; flex-direction: column; }
+    .header-logo-text span:first-child { font-family: var(--serif); font-size: 17px; color: #FFFFFF; line-height: 1.1; }
+    .header-logo-text span:last-child  { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 0.8px; text-transform: uppercase; }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+    .header-clock {
+      font-size: 12px; color: rgba(255,255,255,0.5); font-family: var(--mono);
+      background: rgba(255,255,255,0.08); padding: 5px 10px; border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .admin-badge {
+      display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px; padding: 4px 12px 4px 6px;
+    }
+    .admin-avatar {
+      width: 22px; height: 22px; border-radius: 50%; background: #3B6FD4;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 600; color: white; letter-spacing: 0.5px;
+    }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-link { padding: 6px 14px; border-radius: 8px; font-size: 13px; text-decoration: none; color: rgba(255,255,255,0.55); transition: background 0.12s, color 0.12s; }
+    .nav-link:hover  { background: rgba(255,255,255,0.1); color: #fff; }
+    .nav-link.active { background: #3B6FD4; color: #fff; }
+
+    /* ── Main ── */
+    .main { max-width: 1180px; margin: 0 auto; padding: 2rem; }
+
+    /* ── Welcome ── */
+    .welcome { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 12px; }
+    .welcome-text h1 { font-family: var(--serif); font-size: 34px; font-weight: 400; color: var(--text); line-height: 1.1; }
+    .welcome-text p  { font-size: 13px; color: var(--text-3); margin-top: 5px; }
+    .welcome-actions { display: flex; gap: 8px; align-items: center; }
+    .btn-primary {
+      display: flex; align-items: center; gap: 7px; padding: 8px 18px;
+      background: #3B6FD4; color: white; border: none; border-radius: 8px;
+      font-size: 13px; font-family: var(--font); cursor: pointer; font-weight: 500;
+      text-decoration: none; transition: opacity 0.12s;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-ghost {
+      display: flex; align-items: center; gap: 7px; padding: 7px 16px;
+      background: var(--surface); color: var(--text-2); border: 1px solid var(--border);
+      border-radius: 8px; font-size: 13px; font-family: var(--font); cursor: pointer;
+      text-decoration: none; transition: border-color 0.12s, color 0.12s;
+    }
+    .btn-ghost:hover { border-color: var(--border-dark); color: var(--text); }
+
+    /* ── Alert banner ── */
+    .alert-banner {
+      background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--amber);
+      border-radius: var(--radius); padding: 12px 16px; display: flex; align-items: center;
+      gap: 10px; margin-bottom: 1.5rem; font-size: 13px;
+    }
+    .alert-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); flex-shrink: 0; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .alert-text { color: var(--text-2); flex: 1; }
+    .alert-text strong { color: var(--text); font-weight: 500; }
+    .alert-link { font-size: 12px; color: var(--text-3); text-decoration: none; white-space: nowrap; border-bottom: 1px solid var(--border); }
+    .alert-link:hover { color: var(--text-2); }
+
+    /* ── KPI row ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+    .kpi-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.1rem 1.25rem; position: relative; overflow: hidden;
+      transition: box-shadow 0.15s, border-color 0.15s;
+    }
+    .kpi-card:hover { border-color: var(--border-dark); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .kpi-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+    .kpi-blue::before   { background: var(--blue); }
+    .kpi-green::before  { background: var(--green); }
+    .kpi-purple::before { background: var(--purple); }
+    .kpi-red::before    { background: var(--red); }
+    .kpi-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .kpi-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .kpi-blue   .kpi-icon { background: #DBEAFE; }
+    .kpi-green  .kpi-icon { background: #D1FAE5; }
+    .kpi-purple .kpi-icon { background: #EDE9FE; }
+    .kpi-red    .kpi-icon { background: #FFE4E6; }
+    .kpi-trend { font-size: 11px; font-family: var(--mono); padding: 2px 7px; border-radius: 10px; }
+    .trend-up   { background: #E3F5EC; color: #166534; }
+    .trend-down { background: #FFE4E6; color: #9F1239; }
+    .trend-neu  { background: #EBF1FB; color: #1E3A7A; }
+    .kpi-val { font-size: 30px; font-weight: 600; font-family: var(--mono); color: var(--text); line-height: 1; }
+    .kpi-lbl { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.6px; margin-top: 4px; font-weight: 500; }
+
+    /* ── Content grid ── */
+    .content-grid { display: grid; grid-template-columns: 1fr 340px; gap: 14px; margin-bottom: 14px; }
+
+    /* ── Shared card ── */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.25rem; }
+    .card-title { font-size: 14px; font-weight: 500; color: var(--text); }
+    .card-sub   { font-size: 11px; color: var(--text-3); margin-top: 2px; margin-bottom: 14px; }
+
+    /* ── Citas de hoy ── */
+    .cita-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); animation: fadeIn 0.2s ease both; }
+    .cita-row:last-child { border-bottom: none; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .cita-hora   { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--text); min-width: 42px; }
+    .avatar      { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+    .cita-info   { flex: 1; min-width: 0; }
+    .cita-nombre { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cita-motivo { font-size: 11px; color: var(--text-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+    .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+    .badge-confirmada { background: var(--confirmada-bg); color: var(--confirmada-fg); } .badge-confirmada::before { background: var(--confirmada-dot); }
+    .badge-pendiente  { background: var(--pendiente-bg);  color: var(--pendiente-fg);  } .badge-pendiente::before  { background: var(--pendiente-dot); }
+    .badge-completada { background: var(--completada-bg); color: var(--completada-fg); } .badge-completada::before { background: var(--completada-dot); }
+    .badge-cancelada  { background: var(--cancelada-bg);  color: var(--cancelada-fg);  } .badge-cancelada::before  { background: var(--cancelada-dot); }
+
+    .view-all {
+      display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; padding: 8px;
+      font-size: 12.5px; color: var(--text-3); text-decoration: none;
+      border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2);
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .view-all:hover { color: var(--text-2); border-color: var(--border-dark); }
+
+    /* ── Panel lateral ── */
+    .side-stack { display: flex; flex-direction: column; gap: 14px; }
+    .status-item { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .status-item:last-child { border-bottom: none; }
+    .status-label { color: var(--text-2); }
+    .status-val   { font-family: var(--mono); font-size: 12px; font-weight: 500; }
+    .status-ok    { color: var(--green); }
+    .status-warn  { color: var(--amber); }
+    .status-err   { color: var(--red); }
+    .status-dot   { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
+    .dot-ok   { background: var(--green); }
+    .dot-warn { background: var(--amber); }
+
+    .quick-actions { display: flex; flex-direction: column; gap: 7px; }
+    .quick-btn {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+      font-size: 13px; font-family: var(--font); cursor: pointer; text-decoration: none;
+      color: var(--text-2); transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .quick-btn:hover { background: var(--surface); border-color: var(--border-dark); color: var(--text); }
+    .quick-icon  { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .quick-label { flex: 1; font-weight: 500; }
+    .quick-arrow { color: var(--text-3); font-size: 12px; }
+
+    /* ── Bottom row ── */
+    .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .activity-item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .act-green  { background: #D1FAE5; }
+    .act-red    { background: #FFE4E6; }
+    .act-blue   { background: #DBEAFE; }
+    .act-amber  { background: #FEF3C7; }
+    .act-purple { background: #EDE9FE; }
+    .activity-body { flex: 1; min-width: 0; }
+    .activity-desc { color: var(--text); line-height: 1.35; }
+    .activity-desc strong { font-weight: 500; }
+    .activity-time { font-size: 11px; color: var(--text-3); font-family: var(--mono); margin-top: 2px; }
+
+    .upcoming-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .upcoming-item:last-child { border-bottom: none; }
+    .upcoming-date-block { min-width: 38px; text-align: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; padding: 4px 6px; }
+    .upcoming-day   { font-size: 16px; font-weight: 600; font-family: var(--mono); line-height: 1; color: var(--text); }
+    .upcoming-month { font-size: 9px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-3); margin-top: 2px; }
+    .upcoming-info  { flex: 1; min-width: 0; }
+    .upcoming-name  { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .upcoming-hora  { font-size: 11px; color: var(--text-3); font-family: var(--mono); margin-top: 1px; }
+
+    /* ── Footer ── */
+    .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--text-3); font-family: var(--mono); }
+
+    /* ── Spinner ── */
+    .spinner { width: 13px; height: 13px; border: 1.5px solid #bcd0f5; border-top-color: #3B6FD4; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) { .content-grid { grid-template-columns: 1fr; } .bottom-row { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } .main { padding: 1rem; } .header { padding: 0 1rem; } .welcome-text h1 { font-size: 26px; } }
+  
+
+
+
+
+    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 4px rgba(26,35,50,0.06); }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    thead th {
+      padding: 11px 16px; text-align: left; font-size: 10.5px; font-weight: 600;
+      color: var(--text-3); text-transform: uppercase; letter-spacing: 0.6px;
+      background: var(--surface-2); border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    th.sortable { cursor: pointer; user-select: none; }
+    th.sortable:hover { color: #3B6FD4; }
+    th .sort-icon { margin-left: 4px; opacity: 0.4; font-size: 10px; }
+    th.sorted .sort-icon { opacity: 1; color: #3B6FD4; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; animation: fadeIn 0.2s ease both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-2); }
+    td { padding: 14px 16px; vertical-align: middle; }
+
+    .avatar { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; letter-spacing: 0.5px; }
+    .patient-cell { display: flex; align-items: center; gap: 10px; }
+    .patient-name { font-size: 14px; font-weight: 500; color: var(--text); }
+    .patient-sub  { font-size: 11px; color: var(--text-3); margin-top: 2px; font-family: var(--mono); }
+    .time-block { display: flex; flex-direction: column; gap: 2px; }
+    .time-hora  { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--text); }
+    .time-fecha { font-size: 11px; color: var(--text-3); }
+    .motivo-text { font-size: 13px; color: var(--text-2); max-width: 200px; }
+    .notas-text  { font-size: 11px; color: var(--text-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 500; }
+    .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+    .badge-confirmada { background: var(--confirmada-bg); color: var(--confirmada-fg); } .badge-confirmada::before { background: var(--confirmada-dot); }
+    .badge-pendiente  { background: var(--pendiente-bg);  color: var(--pendiente-fg);  } .badge-pendiente::before  { background: var(--pendiente-dot); }
+    .badge-completada { background: var(--completada-bg); color: var(--completada-fg); } .badge-completada::before { background: var(--completada-dot); }
+    .badge-cancelada  { background: var(--cancelada-bg);  color: var(--cancelada-fg);  } .badge-cancelada::before  { background: var(--cancelada-dot); }
+
+    .row-actions { display: flex; gap: 6px; align-items: center; }
+    .btn-action { width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s; color: var(--text-2); }
+    .btn-action:hover     { border-color: #3B6FD4; color: #3B6FD4; background: #EBF1FB; }
+    .btn-action.del:hover { border-color: #fca5a5; color: #dc2626; background: #fff1f2; }
+
+    .empty-row td { text-align: center; padding: 56px; color: var(--text-3); font-size: 14px; }
+    .empty-icon { font-size: 28px; margin-bottom: 8px; }
+    .table-footer { padding: 10px 16px; font-size: 11.5px; color: var(--text-3); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); background: var(--surface-2); font-family: var(--mono); }
+
+    
+
+    /* ── Badges citas ── */
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 500; }
+    .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+    .badge-confirmada { background: var(--confirmada-bg); color: var(--confirmada-fg); } .badge-confirmada::before { background: var(--confirmada-dot); }
+    .badge-pendiente  { background: var(--pendiente-bg);  color: var(--pendiente-fg);  } .badge-pendiente::before  { background: var(--pendiente-dot); }
+    .badge-completada { background: var(--completada-bg); color: var(--completada-fg); } .badge-completada::before { background: var(--completada-dot); }
+    .badge-cancelada  { background: var(--cancelada-bg);  color: var(--cancelada-fg);  } .badge-cancelada::before  { background: var(--cancelada-dot); }
+    /* ── Badges pagos ── */
+.badge-pagado    { background: var(--pagado-bg);    color: var(--pagado-fg);    } .badge-pagado::before    { background: var(--pagado-dot); }
+    .badge-pendiente { background: var(--pendiente-bg); color: var(--pendiente-fg); } .badge-pendiente::before { background: var(--pendiente-dot); }
+    .badge-vencido   { background: var(--vencido-bg);   color: var(--vencido-fg);   } .badge-vencido::before   { background: var(--vencido-dot); }
+    .badge-parcial   { background: var(--parcial-bg);   color: var(--parcial-fg);   } .badge-parcial::before   { background: var(--parcial-dot); }
+
+
+    .toast-wrap {
+      position: fixed; bottom: 24px; right: 24px;
+      display: flex; flex-direction: column; gap: 10px;
+      z-index: 9999; pointer-events: none;
+    }
+    .toast {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 16px; border-radius: 12px;
+      min-width: 300px; max-width: 380px;
+      box-shadow: 0 8px 30px rgba(26,35,50,0.18);
+      border: 1px solid transparent;
+      pointer-events: all;
+      animation: toastIn 0.28s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes toastIn  { from { opacity:0; transform: translateY(16px) scale(0.96); } to { opacity:1; transform: none; } }
+    @keyframes toastOut { to   { opacity:0; transform: translateY(8px) scale(0.96); } }
+    .toast-error   { background: #FFF1F2; border-color: #fca5a5; color: #881337; }
+    .toast-success { background: #E0F5EC; border-color: #6ee7b7; color: #0D6B3B; }
+    .toast-info    { background: #EBF1FB; border-color: #93b4f0; color: #1E3A7A; }
+    .toast-loading { background: #EBF1FB; border-color: #93b4f0; color: #1E3A7A; }
+    .toast-icon-wrap {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 15px;
+    }
+    .toast-error   .toast-icon-wrap { background: #FFE4E6; }
+    .toast-success .toast-icon-wrap { background: #D1FAE5; }
+    .toast-info    .toast-icon-wrap { background: #DBEAFE; }
+    .toast-loading .toast-icon-wrap { background: #DBEAFE; }
+    .toast-body { flex: 1; min-width: 0; }
+    .toast-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .toast-msg   { font-size: 12px; opacity: 0.82; line-height: 1.45; }
+    .toast-close {
+      background: none; border: none; cursor: pointer; color: inherit;
+      opacity: 0.45; font-size: 15px; padding: 0; line-height: 1; flex-shrink: 0;
+      margin-top: 1px; transition: opacity 0.12s;
+    }
+    .toast-close:hover { opacity: 0.9; }
+    .toast-progress {
+      position: absolute; bottom: 0; left: 0; height: 3px;
+      border-radius: 0 0 12px 12px;
+      animation: progressBar linear forwards;
+    }
+    .toast-error   .toast-progress { background: #e11d48; }
+    .toast-success .toast-progress { background: #16a34a; }
+    .toast-info    .toast-progress { background: #3B6FD4; }
+    @keyframes progressBar { from { width: 100%; } to { width: 0%; } }
+    .toast { position: relative; overflow: hidden; }
+
+    
+
+
+    .modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(26,35,50,0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 520px; box-shadow: 0 24px 60px rgba(26,35,50,0.2); transform: translateY(12px) scale(0.98); transition: transform 0.22s, opacity 0.2s; opacity: 0; }
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); opacity: 1; }
+    .modal-header { padding: 1.4rem 1.5rem 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .modal-title    { font-family: var(--serif); font-size: 22px; font-weight: 400; color: var(--text); }
+    .modal-subtitle { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+    .modal-close { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-2); font-size: 16px; transition: all 0.12s; flex-shrink: 0; }
+    .modal-close:hover { background: var(--surface-2); color: var(--text); }
+    .modal-body { padding: 1.4rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    label { font-size: 11.5px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .field input, .field select, .field textarea { padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; font-family: var(--font); background: var(--surface); color: var(--text); outline: none; transition: border-color 0.12s, box-shadow 0.12s; width: 100%; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: #3B6FD4; box-shadow: 0 0 0 3px rgba(59,111,212,0.1); }
+    .field textarea { resize: vertical; min-height: 72px; }
+    .field input::placeholder, .field textarea::placeholder { color: var(--text-3); }
+    .field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238FA3BE' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
+    .modal-footer { padding: 1rem 1.5rem 1.4rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+    .btn-cancel { padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; font-family: var(--font); cursor: pointer; color: var(--text-2); transition: all 0.12s; }
+    .btn-cancel:hover { border-color: var(--border-dark); color: var(--text); }
+    .btn-save { padding: 8px 20px; border-radius: 8px; border: none; background: #3B6FD4; color: #fff; font-size: 13px; font-weight: 500; font-family: var(--font); cursor: pointer; transition: opacity 0.12s; }
+    .btn-save:hover { opacity: 0.82; }
+    .btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
+    .modal-confirm .modal-body { align-items: center; text-align: center; padding: 2rem 1.5rem; }
+    .confirm-icon  { font-size: 36px; margin-bottom: 12px; }
+    .confirm-title { font-family: var(--serif); font-size: 20px; margin-bottom: 6px; }
+    .confirm-desc  { font-size: 13px; color: var(--text-2); line-height: 1.6; max-width: 340px; }
+    .confirm-patient { font-weight: 600; color: var(--text); }
+    .btn-delete { padding: 8px 20px; border-radius: 8px; border: none; background: #dc2626; color: #fff; font-size: 13px; font-weight: 500; font-family: var(--font); cursor: pointer; transition: opacity 0.12s; }
+    .btn-delete:hover { opacity: 0.85; }
+
+    
+
+    /* ══ Estilos específicos portal paciente ══ */
+
+    /* Nav buttons como links del admin */
+    .nav-link-btn {
+      padding: 6px 14px; border-radius: 8px; font-size: 13px;
+      text-decoration: none; color: rgba(255,255,255,0.55);
+      transition: background 0.12s; cursor: pointer;
+      border: none; font-family: var(--font); background: transparent;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .nav-link-btn:hover  { background: rgba(255,255,255,0.1); color: #fff; }
+    .nav-link-btn.active { background: #3B6FD4; color: #fff; }
+
+    /* Badge usuario */
+    .user-badge { display:flex; align-items:center; gap:6px; font-size:12px; color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:4px 12px 4px 6px; }
+    .user-avatar { width:22px; height:22px; border-radius:50%; background:#3B6FD4; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:600; color:white; letter-spacing:0.5px; }
+    .btn-logout { padding:5px 12px; border-radius:7px; border:1px solid rgba(255,255,255,0.15); background:transparent; font-size:11px; color:rgba(255,255,255,0.5); cursor:pointer; font-family:var(--font); transition:all 0.12s; margin-left:4px; }
+    .btn-logout:hover { border-color:rgba(220,38,38,0.5); color:#fca5a5; }
+
+    /* Tab sections */
+    .tab-content { display:none; animation:fadeIn 0.2s ease both; }
+    .tab-content.active { display:block; }
+
+    /* Welcome banner estilo panel admin */
+    .welcome-banner {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 2rem; flex-wrap: wrap; gap: 12px;
+    }
+    .welcome-text h1 { font-family: var(--serif); font-size: 34px; font-weight: 400; color: var(--text); line-height: 1.1; }
+    .welcome-text p  { font-size: 13px; color: var(--text-3); margin-top: 5px; }
+    .welcome-actions { display: flex; gap: 8px; align-items: center; }
+
+    /* KPI grid exactamente igual al admin */
+    .btn-primary {
+      display: flex; align-items: center; gap: 7px; padding: 8px 18px;
+      background: #3B6FD4; color: white; border: none; border-radius: 8px;
+      font-size: 13px; font-family: var(--font); cursor: pointer; font-weight: 500;
+      text-decoration: none; transition: opacity 0.12s;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+
+    /* Shared card */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.25rem; }
+    .card-title { font-size: 14px; font-weight: 500; color: var(--text); }
+    .card-sub   { font-size: 11px; color: var(--text-3); margin-top: 2px; margin-bottom: 14px; }
+
+    /* Info list */
+    .info-list { display:flex; flex-direction:column; }
+    .info-row  { display:flex; justify-content:space-between; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--border); gap:12px; }
+    .info-row:last-child { border-bottom:none; padding-bottom:0; }
+    .info-label { font-size:11.5px; color:var(--text-3); flex-shrink:0; }
+    .info-val   { font-size:13px; color:var(--text); font-weight:500; text-align:right; }
+
+    /* Proceso box */
+    .proceso-box { background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:14px; font-size:13px; color:var(--text-2); line-height:1.65; min-height:80px; }
+    .proceso-empty { color:var(--text-3); font-style:italic; }
+
+    /* Content grid igual al admin */
+    .content-grid { display: grid; grid-template-columns: 1fr 340px; gap: 14px; margin-bottom: 14px; }
+    .side-stack { display: flex; flex-direction: column; gap: 14px; }
+
+    /* Upcoming items */
+    .upcoming-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .upcoming-item:last-child { border-bottom: none; }
+    .upcoming-date-block { min-width: 38px; text-align: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; padding: 4px 6px; }
+    .upcoming-day   { font-size: 16px; font-weight: 600; font-family: var(--mono); line-height: 1; color: var(--text); }
+    .upcoming-month { font-size: 9px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-3); margin-top: 2px; }
+    .upcoming-info  { flex: 1; min-width: 0; }
+    .upcoming-name  { font-size: 13px; font-weight: 500; color: var(--text); }
+    .upcoming-hora  { font-size: 11px; color: var(--text-3); font-family: var(--mono); margin-top: 1px; }
+
+    /* Quick actions igual al admin */
+    .quick-actions { display: flex; flex-direction: column; gap: 7px; }
+    .quick-btn {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+      font-size: 13px; font-family: var(--font); cursor: pointer; text-decoration: none;
+      color: var(--text-2); transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+    .quick-btn:hover { background: var(--surface); border-color: var(--border-dark); color: var(--text); }
+    .quick-icon  { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .quick-label { flex: 1; font-weight: 500; }
+    .quick-arrow { color: var(--text-3); font-size: 12px; }
+
+    /* View all */
+    .view-all {
+      display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; padding: 8px;
+      font-size: 12.5px; color: var(--text-3); text-decoration: none;
+      border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2);
+      transition: color 0.12s, border-color 0.12s; cursor: pointer;
+    }
+    .view-all:hover { color: var(--text-2); border-color: var(--border-dark); }
+
+    /* Activity items */
+    .activity-item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .act-green  { background: #D1FAE5; }
+    .act-red    { background: #FFE4E6; }
+    .act-blue   { background: #DBEAFE; }
+    .act-amber  { background: #FEF3C7; }
+    .activity-body { flex: 1; min-width: 0; }
+    .activity-desc { color: var(--text); line-height: 1.35; }
+    .activity-desc strong { font-weight: 500; }
+    .activity-time { font-size: 11px; color: var(--text-3); font-family: var(--mono); margin-top: 2px; }
+
+    /* Alert banner */
+    .alert-banner {
+      background: var(--surface); border: 1px solid var(--border); border-left: 3px solid #EF9F27;
+      border-radius: var(--radius); padding: 12px 16px; display: flex; align-items: center;
+      gap: 10px; margin-bottom: 1.5rem; font-size: 13px;
+    }
+    .alert-dot { width: 7px; height: 7px; border-radius: 50%; background: #EF9F27; flex-shrink: 0; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .alert-text { color: var(--text-2); flex: 1; }
+    .alert-text strong { color: var(--text); font-weight: 500; }
+
+    /* Footer */
+    .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--text-3); font-family: var(--mono); }
+
+    /* Spinner */
+    .spinner { width: 13px; height: 13px; border: 1.5px solid #bcd0f5; border-top-color: #3B6FD4; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+
+    @media (max-width: 900px) { .content-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .main { padding: 1rem; } .header { padding: 0 1rem; } }
+  
+    /* ── Métricas citas ── */
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+    .metric-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.1rem 1.25rem; transition: all 0.15s; position: relative; overflow: hidden;
+    }
+    .metric-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; opacity: 0; transition: opacity 0.15s; }
+    .metric-card[data-estado="confirmada"]::after { background: var(--confirmada-dot); }
+    .metric-card[data-estado="pendiente"]::after  { background: var(--pendiente-dot); }
+    .metric-card[data-estado="completada"]::after { background: var(--completada-dot); }
+    .metric-card[data-estado="cancelada"]::after  { background: var(--cancelada-dot); }
+    .metric-card:hover { border-color: var(--border-dark); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .metric-card:hover::after { opacity: 1; }
+    .m-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .m-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .metric-card[data-estado="confirmada"] .m-dot { background: var(--confirmada-dot); }
+    .metric-card[data-estado="pendiente"]  .m-dot { background: var(--pendiente-dot); }
+    .metric-card[data-estado="completada"] .m-dot { background: var(--completada-dot); }
+    .metric-card[data-estado="cancelada"]  .m-dot { background: var(--cancelada-dot); }
+    .m-value { font-size: 32px; font-weight: 600; color: var(--text); font-family: var(--mono); line-height: 1; }
+    .m-label { font-size: 11px; color: var(--text-3); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.7px; font-weight: 500; }
+    @media (max-width: 600px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+
+  </style>
+</head>
+<body>
+
+<!-- Fondo decorativo (idéntico al admin) -->
+<div class="bg-dots"></div>
+<div class="bg-lines"></div>
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+<div class="bg-glow bg-glow-3"></div>
+<div class="bg-arc"></div>
+
+<!-- Header idéntico al admin -->
+<header class="header">
+  <div class="header-logo">
+    <div class="header-logo-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+      </svg>
+    </div>
+    <div class="header-logo-text">
+      <span id="header-clinica">Agenda Médica</span>
+      <span>Portal del paciente</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-clock" id="now-label"></div>
+  </div>
+  <nav class="nav-links">
+    <button class="nav-link-btn active" onclick="showTab('inicio')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio
+    </button>
+    <button class="nav-link-btn" onclick="showTab('citas')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Mis citas
+    </button>
+    <button class="nav-link-btn" onclick="showTab('pagos')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Mis pagos
+    </button>
+    <button class="nav-link-btn" onclick="showTab('historial')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Mi historial
+    </button>
+    <div class="user-badge">
+      <div class="user-avatar" id="user-initials">—</div>
+      <span id="user-nombre">—</span>
+    </div>
+    <button class="btn-logout" onclick="cerrarSesion()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:3px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Salir
+    </button>
+  </nav>
+</header>
+
+<main class="main" style="max-width:1180px">
+
+  <!-- ══════════════ INICIO ══════════════ -->
+  <div id="tab-inicio" class="tab-content active">
+
+    <!-- Bienvenida estilo admin -->
+    <div class="welcome-banner">
+      <div class="welcome-text">
+        <h1 id="greeting-title">Buenos días</h1>
+        <p id="greeting-sub">Tu portal de salud · <span id="today-date"></span></p>
+      </div>
+      <div class="welcome-actions">
+        <button onclick="showTab('historial')" class="btn-primary" style="background:var(--surface);color:var(--text-2);border:1px solid var(--border)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Mi historial
+        </button>
+        <button onclick="openModalNuevaCita()" class="btn-primary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Agendar cita
+        </button>
+      </div>
+    </div>
+
+    <!-- Alerta deuda (oculta si no hay) -->
+    <div class="alert-banner" id="alert-deuda" style="display:none">
+      <div class="alert-dot"></div>
+      <span class="alert-text">Tienes <strong id="alert-deuda-txt">—</strong> en pagos pendientes. Contáctanos para regularizar.</span>
+    </div>
+
+    <!-- KPIs idénticos al admin -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-top">
+          <div class="kpi-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <span class="kpi-trend trend-neu" id="kpi-prox-lbl">próxima</span>
+        </div>
+        <div class="kpi-val" id="kpi-total-citas">—</div>
+        <div class="kpi-lbl">Total citas</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-top">
+          <div class="kpi-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span class="kpi-trend trend-up" id="kpi-completadas-lbl">—</span>
+        </div>
+        <div class="kpi-val" id="kpi-completadas">—</div>
+        <div class="kpi-lbl">Completadas</div>
+      </div>
+      <div class="kpi-card kpi-purple">
+        <div class="kpi-top">
+          <div class="kpi-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2D9CDB" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <span class="kpi-trend trend-up" id="kpi-pagado-lbl">pagado</span>
+        </div>
+        <div class="kpi-val" id="kpi-total-pagado">—</div>
+        <div class="kpi-lbl">Total pagado</div>
+      </div>
+      <div class="kpi-card kpi-red">
+        <div class="kpi-top">
+          <div class="kpi-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <span class="kpi-trend trend-down" id="kpi-deuda-lbl">pendiente</span>
+        </div>
+        <div class="kpi-val" id="kpi-deuda">—</div>
+        <div class="kpi-lbl">Saldo pendiente</div>
+      </div>
+    </div>
+
+    <!-- Content grid idéntico al admin -->
+    <div class="content-grid">
+
+      <!-- Próximas citas -->
+      <div class="card">
+        <p class="card-title">Próximas citas</p>
+        <p class="card-sub" id="proximas-sub">Cargando...</p>
+        <div id="proximas-lista"></div>
+        <button onclick="showTab('citas')" class="view-all">
+          Ver todas mis citas
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+      <!-- Lateral -->
+      <div class="side-stack">
+
+        <!-- Acciones rápidas -->
+        <div class="card">
+          <p class="card-title">Acciones rápidas</p>
+          <p class="card-sub">Navega por tu portal</p>
+          <div class="quick-actions">
+            <button onclick="openModalNuevaCita()" class="quick-btn">
+              <div class="quick-icon" style="background:#E2F5EC;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <span class="quick-label">Agendar nueva cita</span>
+              <span class="quick-arrow">→</span>
+            </button>
+            <button onclick="showTab('citas')" class="quick-btn">
+              <div class="quick-icon" style="background:#DBEAFE;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3B6FD4" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <span class="quick-label">Ver mis citas</span>
+              <span class="quick-arrow">→</span>
+            </button>
+            <button onclick="showTab('pagos')" class="quick-btn">
+              <div class="quick-icon" style="background:#FEF3C7;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              </div>
+              <span class="quick-label">Ver mis pagos</span>
+              <span class="quick-arrow">→</span>
+            </button>
+            <button onclick="showTab('historial')" class="quick-btn">
+              <div class="quick-icon" style="background:#EDE9FE;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <span class="quick-label">Mi historial</span>
+              <span class="quick-arrow">→</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mi proceso -->
+        <div class="card">
+          <p class="card-title">Mi proceso</p>
+          <p class="card-sub">Información del equipo médico</p>
+          <div class="proceso-box" id="proceso-texto">
+            <span class="proceso-empty">Sin información registrada.</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Actividad reciente -->
+    <div class="content-grid" style="grid-template-columns:1fr 1fr">
+      <div class="card">
+        <p class="card-title">Actividad reciente</p>
+        <p class="card-sub">Últimas citas y pagos</p>
+        <div id="actividad-lista"></div>
+      </div>
+      <div class="card">
+        <p class="card-title">Mis pagos recientes</p>
+        <p class="card-sub">Últimos registros de pago</p>
+        <div id="pagos-recientes-lista"></div>
+        <button onclick="showTab('pagos')" class="view-all" style="margin-top:10px">Ver todos mis pagos →</button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <span id="footer-clinica">Agenda Médica · Portal del paciente</span>
+      <span id="footer-time">—</span>
+    </div>
+
+  </div>
+
+  <!-- ══════════════ MIS CITAS ══════════════ -->
+  <div id="tab-citas" class="tab-content">
+    <div style="margin-bottom:1.75rem;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h1 style="font-family:var(--serif);font-size:32px;font-weight:400;color:var(--text);line-height:1.1">Mis citas</h1>
+        <p style="font-size:13px;color:var(--text-3);margin-top:4px">Historial completo de citas agendadas</p>
+      </div>
+      <button onclick="openModalNuevaCita()" class="btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Agendar cita
+      </button>
+    </div>
+
+    <!-- Métricas citas -->
+    <div class="metrics" style="margin-bottom:1.5rem">
+      <div class="metric-card" data-estado="confirmada">
+        <div class="m-top"><div class="m-dot"></div></div>
+        <div class="m-value" id="cnt-confirmada">—</div>
+        <div class="m-label">Confirmadas</div>
+      </div>
+      <div class="metric-card" data-estado="pendiente">
+        <div class="m-top"><div class="m-dot"></div></div>
+        <div class="m-value" id="cnt-pendiente">—</div>
+        <div class="m-label">Pendientes</div>
+      </div>
+      <div class="metric-card" data-estado="completada">
+        <div class="m-top"><div class="m-dot"></div></div>
+        <div class="m-value" id="cnt-completada">—</div>
+        <div class="m-label">Completadas</div>
+      </div>
+      <div class="metric-card" data-estado="cancelada">
+        <div class="m-top"><div class="m-dot"></div></div>
+        <div class="m-value" id="cnt-cancelada">—</div>
+        <div class="m-label">Canceladas</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha / Hora</th>
+            <th>Motivo</th>
+            <th>Notas</th>
+            <th>Estado</th>
+            <th style="width:100px;text-align:center">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-citas"></tbody>
+      </table>
+      <div class="table-footer">
+        <span id="citas-count">—</span>
+        <span id="citas-time">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ MIS PAGOS ══════════════ -->
+  <div id="tab-pagos" class="tab-content">
+    <div style="margin-bottom:1.75rem">
+      <h1 style="font-family:var(--serif);font-size:32px;font-weight:400;color:var(--text);line-height:1.1">Mis pagos</h1>
+      <p style="font-size:13px;color:var(--text-3);margin-top:4px">Historial de pagos y saldos pendientes</p>
+    </div>
+
+    <div class="kpi-grid" style="margin-bottom:1.5rem">
+      <div class="kpi-card kpi-green">
+        <div class="kpi-top"><div class="kpi-icon" style="background:#D1FAE5"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div></div>
+        <div class="kpi-val" id="p-kpi-pagado">$0</div>
+        <div class="kpi-lbl">Total pagado</div>
+      </div>
+      <div class="kpi-card kpi-purple">
+        <div class="kpi-top"><div class="kpi-icon" style="background:#EDE9FE"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7F77DD" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div></div>
+        <div class="kpi-val" id="p-kpi-pendiente">$0</div>
+        <div class="kpi-lbl">Pendiente</div>
+      </div>
+      <div class="kpi-card kpi-red">
+        <div class="kpi-top"><div class="kpi-icon" style="background:#FFE4E6"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div></div>
+        <div class="kpi-val" id="p-kpi-vencido">0</div>
+        <div class="kpi-lbl">Vencidos</div>
+      </div>
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-top"><div class="kpi-icon" style="background:#DBEAFE"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div></div>
+        <div class="kpi-val" id="p-kpi-count">0</div>
+        <div class="kpi-lbl">Registros</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Concepto</th>
+            <th>Método</th>
+            <th>Monto</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-pagos"></tbody>
+      </table>
+      <div class="table-footer">
+        <span id="pagos-count">—</span>
+        <span id="pagos-time">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ MI HISTORIAL ══════════════ -->
+  <div id="tab-historial" class="tab-content">
+    <div style="margin-bottom:1.75rem">
+      <h1 style="font-family:var(--serif);font-size:32px;font-weight:400;color:var(--text);line-height:1.1">Mi historial</h1>
+      <p style="font-size:13px;color:var(--text-3);margin-top:4px">Información personal y proceso clínico — solo lectura</p>
+    </div>
+
+    <div class="content-grid">
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <p class="card-title">Mis datos personales</p>
+          <p class="card-sub">Información registrada en el sistema</p>
+          <div class="info-list">
+            <div class="info-row"><span class="info-label">Nombre</span><span class="info-val" id="h-nombre">—</span></div>
+            <div class="info-row"><span class="info-label">Cédula</span><span class="info-val" id="h-cedula" style="font-family:var(--mono)">—</span></div>
+            <div class="info-row"><span class="info-label">Correo</span><span class="info-val" id="h-email">—</span></div>
+            <div class="info-row"><span class="info-label">Teléfono</span><span class="info-val" id="h-telefono">—</span></div>
+            <div class="info-row"><span class="info-label">Paciente desde</span><span class="info-val" id="h-registro">—</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <p class="card-title">Descripción de mi proceso</p>
+          <p class="card-sub">Registrado por el equipo médico</p>
+          <div class="proceso-box" id="proceso-historial">
+            <span class="proceso-empty">Sin información registrada.</span>
+          </div>
+        </div>
+      </div>
+      <div class="side-stack">
+        <div class="card">
+          <p class="card-title">Resumen de actividad</p>
+          <p class="card-sub">Estadísticas de tu historial</p>
+          <div class="info-list">
+            <div class="info-row"><span class="info-label">Total citas</span><span class="info-val" id="h-total-citas">—</span></div>
+            <div class="info-row"><span class="info-label">Completadas</span><span class="info-val" id="h-completadas">—</span></div>
+            <div class="info-row"><span class="info-label">Canceladas</span><span class="info-val" id="h-canceladas">—</span></div>
+            <div class="info-row"><span class="info-label">Total pagado</span><span class="info-val" id="h-total-pago">—</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <p class="card-title">Última cita</p>
+          <p class="card-sub">Tu cita más reciente</p>
+          <div id="ultima-cita-box"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <p class="card-title" style="margin-bottom:14px">Historial completo de citas</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fecha</th><th>Hora</th><th>Motivo</th><th>Estado</th></tr></thead>
+          <tbody id="tbody-historial"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- Modal nueva cita -->
+<div class="modal-overlay" id="modal-cita" onclick="if(event.target.id==='modal-cita')closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Agendar cita</div>
+        <div class="modal-subtitle">Selecciona fecha, hora y motivo de tu consulta</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field"><label>Fecha *</label><input type="date" id="nc-fecha" /></div>
+        <div class="field"><label>Hora *</label><input type="time" id="nc-hora" /></div>
+      </div>
+      <div class="field">
+        <label>Motivo de consulta</label>
+        <input type="text" id="nc-motivo" placeholder="Ej: Control mensual, Dolor, Revisión…" />
+      </div>
+      <div class="field">
+        <label>Notas adicionales</label>
+        <textarea id="nc-notas" placeholder="Información adicional relevante…"></textarea>
+      </div>
+      <div id="nc-error" style="display:none;padding:10px 12px;background:#FFF1F2;border:1px solid #fca5a5;border-radius:8px;font-size:13px;color:#881337;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" id="btn-agendar" onclick="agendarCita()">Confirmar cita</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal cancelar cita -->
+<div class="modal-overlay" id="modal-cancelar" onclick="if(event.target.id==='modal-cancelar')closeCancelModal()">
+  <div class="modal modal-confirm" style="max-width:420px">
+    <div class="modal-header">
+      <div><div class="modal-title">Cancelar cita</div></div>
+      <button class="modal-close" onclick="closeCancelModal()">✕</button>
+    </div>
+    <div class="modal-body" style="align-items:center;text-align:center;padding:2rem 1.5rem">
+      <div style="font-size:36px;margin-bottom:12px">📅</div>
+      <div style="font-family:var(--serif);font-size:20px;margin-bottom:8px">¿Cancelar esta cita?</div>
+      <div style="font-size:13px;color:var(--text-2);line-height:1.6" id="cancelar-desc">Esta acción no se puede deshacer.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeCancelModal()">No, mantener</button>
+      <button class="btn-delete" id="btn-cancelar-confirm" onclick="confirmarCancelar()">Sí, cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API       = 'http://localhost:8000';
+const API_CITAS = API + '/api/appointments';
+const API_PAGOS = API + '/api/payments/';
+const API_ME    = API + '/api/auth/me';
+const PROC_KEY  = 'am_procesos_v2';
+const CFG_KEY   = 'am_configuracion_v1';
+
+let usuarioActual = null;
+let citaACancelar = null;
+
+/* ── Auth ── */
+function getToken() { return localStorage.getItem('token'); }
+function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() }; }
+function checkAuth() { if (!getToken()) { window.location.href = '../login.html'; return false; } return true; }
+
+/* ── Reloj ── */
+function updateClock() {
+  const now = new Date();
+  document.getElementById('now-label').textContent =
+    now.toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'}) + ' · ' +
+    now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('footer-time').textContent =
+    'Act. ' + now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const h = now.getHours();
+  const s = h<12?'Buenos días':h<18?'Buenas tardes':'Buenas noches';
+  document.getElementById('greeting-title').textContent = s;
+  const DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const MESES_L=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const dia = DIAS[now.getDay()];
+  document.getElementById('today-date').textContent =
+    dia.charAt(0).toUpperCase()+dia.slice(1)+', '+now.getDate()+' de '+MESES_L[now.getMonth()]+' de '+now.getFullYear();
+}
+updateClock(); setInterval(updateClock, 1000);
+
+/* ── Toast ── */
+const TCFG={error:{icon:'✕',title:'Error',d:5000},success:{icon:'✓',title:'Listo',d:3500},info:{icon:'ℹ',title:'Info',d:4000}};
+function showToast(type,msg,title){
+  const wrap=document.getElementById('toast-wrap');
+  const c=TCFG[type]||TCFG.info;
+  const id='t'+Date.now();
+  const el=document.createElement('div');
+  el.id=id; el.className='toast toast-'+type;
+  const iconW=document.createElement('div'); iconW.className='toast-icon-wrap'; iconW.textContent=c.icon;
+  const body=document.createElement('div'); body.className='toast-body';
+  const t=document.createElement('div'); t.className='toast-title'; t.textContent=title||c.title;
+  const m=document.createElement('div'); m.className='toast-msg'; m.textContent=msg;
+  const btn=document.createElement('button'); btn.className='toast-close'; btn.textContent='✕'; btn.onclick=()=>rT(id);
+  const prog=document.createElement('div'); prog.className='toast-progress'; prog.style.animationDuration=c.d+'ms';
+  body.appendChild(t); body.appendChild(m);
+  el.appendChild(iconW); el.appendChild(body); el.appendChild(btn); el.appendChild(prog);
+  wrap.appendChild(el); setTimeout(()=>rT(id),c.d);
+}
+function rT(id){const el=document.getElementById(id);if(!el)return;el.style.animation='toastOut 0.22s ease forwards';setTimeout(()=>el.remove(),220);}
+
+/* ── Helpers ── */
+const PAL=[['#D1FAE5','#065F46'],['#DBEAFE','#1E3A8A'],['#EDE9FE','#4C1D95'],['#FEF3C7','#78350F'],['#FFE4E6','#9F1239'],['#CFFAFE','#164E63'],['#FCE7F3','#831843'],['#D1FAE5','#14532D']];
+function aC(n){let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))%PAL.length;return PAL[h];}
+function ini(n){return n.trim().split(' ').slice(0,2).map(w=>w[0].toUpperCase()).join('');}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function fFecha(d){if(!d)return'—';const[y,m,dd]=d.split('-');return parseInt(dd)+' '+MESES[parseInt(m)-1]+' '+y;}
+function fMonto(n){return'$'+Number(n).toLocaleString('es-CO');}
+
+/* ── Tabs ── */
+function showTab(tab) {
+  ['inicio','citas','pagos','historial'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+  });
+  document.querySelectorAll('.nav-link-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['inicio','citas','pagos','historial'][i]===tab);
+  });
+  if (tab==='citas')     loadCitas();
+  if (tab==='pagos')     loadPagos();
+  if (tab==='historial') loadHistorial();
+}
+
+/* ── Cargar usuario ── */
+async function loadUsuario() {
+  if (!checkAuth()) return;
+  try {
+    const res = await fetch(API_ME, {headers: authHeaders()});
+    if (res.status===401) { cerrarSesion(); return; }
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const user = await res.json();
+    usuarioActual = user;
+
+    if (user.rol !== 'paciente') {
+      showToast('error','Este portal es solo para pacientes.','Acceso denegado');
+      setTimeout(()=>cerrarSesion(), 2000); return;
+    }
+
+    const nombre = user.nombre + ' ' + (user.apellido||'');
+    const [bg,fg] = aC(nombre.trim());
+
+    document.getElementById('user-nombre').textContent    = user.nombre;
+    document.getElementById('user-initials').textContent  = ini(nombre.trim());
+    document.getElementById('greeting-title').textContent = (new Date().getHours()<12?'Buenos días':new Date().getHours()<18?'Buenas tardes':'Buenas noches') + ', ' + user.nombre;
+
+    // Historial
+    document.getElementById('h-nombre').textContent   = nombre.trim();
+    document.getElementById('h-cedula').textContent   = user.cedula   || '—';
+    document.getElementById('h-email').textContent    = user.email    || '—';
+    document.getElementById('h-telefono').textContent = user.telefono || '—';
+    document.getElementById('h-registro').textContent = user.created_at ? fFecha(user.created_at.split('T')[0]) : '—';
+
+    // Proceso
+    const procs = JSON.parse(localStorage.getItem(PROC_KEY)||'{}');
+    const txt   = user.cedula ? (procs[user.cedula]||'') : '';
+    ['proceso-texto','proceso-historial'].forEach(id => {
+      const el = document.getElementById(id);
+      el.innerHTML = txt ? esc(txt).replace(/\n/g,'<br>') : '<span class="proceso-empty">Sin información registrada por el equipo médico.</span>';
+    });
+
+    // Config nombre clínica
+    const cfg = JSON.parse(localStorage.getItem(CFG_KEY)||'{}');
+    if (cfg.nombre) {
+      document.getElementById('header-clinica').textContent = cfg.nombre;
+      document.getElementById('footer-clinica').textContent = cfg.nombre + ' · Portal del paciente';
+    }
+
+    await loadInicio();
+  } catch(err) {
+    showToast('error','Error al cargar tu perfil: '+err.message,'Error');
+  }
+}
+
+/* ── Inicio ── */
+async function loadInicio() {
+  if (!usuarioActual) return;
+  try {
+    const [rC, rP] = await Promise.all([
+      fetch(API_CITAS+'/citas?campo=fecha&orden=asc', {headers: authHeaders()}),
+      fetch(API_PAGOS, {headers: authHeaders()}),
+    ]);
+    const dC = rC.ok ? await rC.json() : {citas:[]};
+    const dP = rP.ok ? await rP.json() : {pagos:[]};
+    const cedula = usuarioActual.cedula;
+    const citas  = (dC.citas||[]).filter(c=>c.cedula===cedula);
+    const pagos  = (dP.pagos||[]).filter(p=>p.cedula===cedula);
+    const today  = new Date().toISOString().slice(0,10);
+    const proximas = citas.filter(c=>c.fecha>=today&&['confirmada','pendiente'].includes(c.estado));
+
+    // KPIs inicio
+    document.getElementById('kpi-total-citas').textContent    = citas.length;
+    document.getElementById('kpi-completadas').textContent    = citas.filter(c=>c.estado==='completada').length;
+    document.getElementById('kpi-completadas-lbl').textContent = proximas.length ? fFecha(proximas[0].fecha) : 'sin pendientes';
+    document.getElementById('kpi-prox-lbl').textContent       = proximas.length ? 'próxima: '+proximas[0].hora : 'sin próximas';
+    const totalPagado = pagos.filter(p=>p.estado==='pagado').reduce((s,p)=>s+Number(p.monto),0);
+    const deuda = pagos.filter(p=>p.estado==='pendiente'||p.estado==='vencido').reduce((s,p)=>s+Number(p.monto),0);
+    document.getElementById('kpi-total-pagado').textContent   = fMonto(totalPagado);
+    document.getElementById('kpi-deuda').textContent          = fMonto(deuda);
+    document.getElementById('kpi-pagado-lbl').textContent     = pagos.filter(p=>p.estado==='pagado').length + ' pagos';
+    document.getElementById('kpi-deuda-lbl').textContent      = deuda>0 ? 'requiere atención' : 'al día';
+
+    if (deuda > 0) {
+      document.getElementById('alert-deuda').style.display = 'flex';
+      document.getElementById('alert-deuda-txt').textContent = fMonto(deuda);
+    }
+
+    // Próximas citas
+    const lista = document.getElementById('proximas-lista');
+    document.getElementById('proximas-sub').textContent = proximas.length
+      ? proximas.length+' cita'+(proximas.length!==1?'s':'')+' próxima'+(proximas.length!==1?'s':'')
+      : 'Sin citas próximas';
+    if (!proximas.length) {
+      lista.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--text-3);font-size:13px;">No tienes citas próximas</div>';
+    } else {
+      lista.innerHTML = proximas.slice(0,5).map((c,i)=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);animation:fadeIn 0.2s ease both;animation-delay:${i*40}ms">
+          <div style="min-width:38px;text-align:center;background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:4px 6px">
+            <div style="font-size:16px;font-weight:600;font-family:var(--mono);line-height:1;color:var(--text)">${c.fecha.split('-')[2].replace(/^0/,'')}</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-3);margin-top:2px">${MESES[parseInt(c.fecha.split('-')[1])-1]}</div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:500;color:var(--text)">${c.motivo?esc(c.motivo):'Consulta médica'}</div>
+            <div style="font-size:11px;color:var(--text-3);font-family:var(--mono);margin-top:1px">${c.hora||'—'}</div>
+          </div>
+          <span class="badge badge-${c.estado}">${cap(c.estado)}</span>
+        </div>`).join('');
+    }
+
+    // Actividad reciente
+    const actEl = document.getElementById('actividad-lista');
+    const recientes = [...citas.slice(-4).reverse().map(c=>{
+      const icon = {confirmada:{bg:'act-green',stroke:'#1D9E75',path:'<polyline points="20 6 9 17 4 12"/>'},completada:{bg:'act-blue',stroke:'#3B6FD4',path:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'},cancelada:{bg:'act-red',stroke:'#e11d48',path:'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>'},pendiente:{bg:'act-amber',stroke:'#d97706',path:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'}};
+      const ic = icon[c.estado]||icon.pendiente;
+      return '<div class="activity-item"><div class="activity-icon '+ic.bg+'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+ic.stroke+'" stroke-width="2">'+ic.path+'</svg></div><div class="activity-body"><div class="activity-desc">Cita <strong>'+c.estado+'</strong></div><div class="activity-time">'+fFecha(c.fecha)+(c.hora?' · '+c.hora:'')+'</div></div></div>';
+    })];
+    actEl.innerHTML = recientes.length ? recientes.join('') : '<div style="color:var(--text-3);font-size:13px;padding:10px 0">Sin actividad reciente</div>';
+
+    // Pagos recientes
+    const prEl = document.getElementById('pagos-recientes-lista');
+    const metIcon = {efectivo:'💵',tarjeta:'💳',transferencia:'🏦',otro:'📋'};
+    const pagosRec = pagos.slice(-5).reverse();
+    prEl.innerHTML = pagosRec.length
+      ? pagosRec.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:13px;font-weight:500">${esc(p.concepto||'—')}</div><div style="font-size:11px;color:var(--text-3);font-family:var(--mono)">${fFecha(p.fecha)} · ${metIcon[p.metodo]||'💰'}</div></div><div style="text-align:right"><div style="font-family:var(--mono);font-size:13px;font-weight:600">${fMonto(p.monto)}</div><span class="badge badge-${p.estado}" style="margin-top:3px">${cap(p.estado)}</span></div></div>`).join('')
+      : '<div style="color:var(--text-3);font-size:13px;padding:10px 0">Sin pagos registrados</div>';
+
+  } catch(err) { console.error(err); }
+}
+
+/* ── Citas ── */
+async function loadCitas() {
+  if (!usuarioActual) return;
+  const tbody = document.getElementById('tbody-citas');
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px"><span class="spinner"></span></td></tr>';
+  try {
+    const res = await fetch(API_CITAS+'/citas?campo=fecha&orden=desc', {headers: authHeaders()});
+    const data = res.ok ? await res.json() : {citas:[]};
+    const citas = (data.citas||[]).filter(c=>c.cedula===usuarioActual.cedula);
+
+    // Conteos
+    const conteos = {confirmada:0,pendiente:0,completada:0,cancelada:0};
+    citas.forEach(c=>{ if(conteos[c.estado]!==undefined) conteos[c.estado]++; });
+    ['confirmada','pendiente','completada','cancelada'].forEach(e=>{
+      const el = document.getElementById('cnt-'+e); if(el) el.textContent=conteos[e];
+    });
+
+    document.getElementById('citas-count').textContent = citas.length+' cita'+(citas.length!==1?'s':'');
+    document.getElementById('citas-time').textContent  = 'Act. '+new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+    if (!citas.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-3)">No tienes citas registradas</td></tr>'; return; }
+    const today = new Date().toISOString().slice(0,10);
+    tbody.innerHTML = citas.map((c,i)=>`
+      <tr style="animation-delay:${i*25}ms">
+        <td><div style="font-family:var(--mono);font-size:14px;font-weight:500">${c.hora||'—'}</div><div style="font-size:11px;color:var(--text-3)">${fFecha(c.fecha)}</div></td>
+        <td style="color:var(--text-2);font-size:13px">${c.motivo?esc(c.motivo):'<span style="color:var(--text-3)">—</span>'}</td>
+        <td style="font-size:11px;color:var(--text-3);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.notas?esc(c.notas):'—'}</td>
+        <td><span class="badge badge-${c.estado}">${cap(c.estado)}</span></td>
+        <td style="text-align:center">${['pendiente','confirmada'].includes(c.estado)&&c.fecha>=today
+          ?'<button onclick="pedirCancelar('+c.id+')" style="font-size:11.5px;padding:4px 10px;border-radius:6px;border:1px solid #fca5a5;background:#FFF1F2;color:#dc2626;cursor:pointer;font-family:var(--font)">Cancelar</button>'
+          :'<span style="font-size:11px;color:var(--text-3)">—</span>'
+        }</td>
+      </tr>`).join('');
+  } catch(err) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-3)">Error al cargar citas</td></tr>'; }
+}
+
+/* ── Pagos ── */
+async function loadPagos() {
+  if (!usuarioActual) return;
+  const tbody = document.getElementById('tbody-pagos');
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px"><span class="spinner"></span></td></tr>';
+  try {
+    const res = await fetch(API_PAGOS, {headers: authHeaders()});
+    const data = res.ok ? await res.json() : {pagos:[]};
+    const pagos = (data.pagos||[]).filter(p=>p.cedula===usuarioActual.cedula);
+
+    const pagado   = pagos.filter(p=>p.estado==='pagado').reduce((s,p)=>s+Number(p.monto),0);
+    const pendiente = pagos.filter(p=>p.estado==='pendiente').reduce((s,p)=>s+Number(p.monto),0);
+    const vencidos = pagos.filter(p=>p.estado==='vencido').length;
+    document.getElementById('p-kpi-pagado').textContent   = fMonto(pagado);
+    document.getElementById('p-kpi-pendiente').textContent = fMonto(pendiente);
+    document.getElementById('p-kpi-vencido').textContent  = vencidos;
+    document.getElementById('p-kpi-count').textContent    = pagos.length;
+    document.getElementById('pagos-count').textContent    = pagos.length+' pago'+(pagos.length!==1?'s':'');
+    document.getElementById('pagos-time').textContent     = 'Act. '+new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+    if (!pagos.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-3)">No tienes pagos registrados</td></tr>'; return; }
+    const metIcon={efectivo:'💵',tarjeta:'💳',transferencia:'🏦',otro:'📋'};
+    tbody.innerHTML = pagos.map((p,i)=>`
+      <tr style="animation-delay:${i*25}ms">
+        <td style="font-size:13px">${fFecha(p.fecha)}</td>
+        <td style="color:var(--text-2);font-size:13px">${esc(p.concepto||'—')}</td>
+        <td style="font-size:13px">${metIcon[p.metodo]||'💰'} ${cap(p.metodo||'—')}</td>
+        <td style="font-family:var(--mono);font-size:13px;font-weight:600">${fMonto(p.monto)}</td>
+        <td><span class="badge badge-${p.estado}">${cap(p.estado)}</span></td>
+      </tr>`).join('');
+  } catch(err) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-3)">Error al cargar pagos</td></tr>'; }
+}
+
+/* ── Historial ── */
+async function loadHistorial() {
+  if (!usuarioActual) return;
+  const tbody = document.getElementById('tbody-historial');
+  try {
+    const [rC, rP] = await Promise.all([
+      fetch(API_CITAS+'/citas?campo=fecha&orden=desc', {headers: authHeaders()}),
+      fetch(API_PAGOS, {headers: authHeaders()}),
+    ]);
+    const dC = rC.ok ? await rC.json() : {citas:[]};
+    const dP = rP.ok ? await rP.json() : {pagos:[]};
+    const citas = (dC.citas||[]).filter(c=>c.cedula===usuarioActual.cedula);
+    const pagos = (dP.pagos||[]).filter(p=>p.cedula===usuarioActual.cedula);
+
+    // Resumen
+    document.getElementById('h-total-citas').textContent  = citas.length;
+    document.getElementById('h-completadas').textContent  = citas.filter(c=>c.estado==='completada').length;
+    document.getElementById('h-canceladas').textContent   = citas.filter(c=>c.estado==='cancelada').length;
+    document.getElementById('h-total-pago').textContent   = fMonto(pagos.filter(p=>p.estado==='pagado').reduce((s,p)=>s+Number(p.monto),0));
+
+    // Última cita
+    const ultima = citas[0];
+    const ulBox  = document.getElementById('ultima-cita-box');
+    ulBox.innerHTML = ultima
+      ? `<div style="display:flex;flex-direction:column;gap:6px;padding:10px 0"><div style="font-family:var(--mono);font-size:14px;font-weight:500">${ultima.hora||'—'}</div><div style="font-size:12px;color:var(--text-3)">${fFecha(ultima.fecha)}</div><div style="font-size:13px;color:var(--text-2)">${ultima.motivo?esc(ultima.motivo):'Sin motivo registrado'}</div><span class="badge badge-${ultima.estado}">${cap(ultima.estado)}</span></div>`
+      : '<div style="color:var(--text-3);font-size:13px;padding:10px 0">Sin citas registradas</div>';
+
+    // Tabla historial
+    if (!citas.length) { tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-3)">Sin historial</td></tr>'; return; }
+    tbody.innerHTML = citas.map((c,i)=>`
+      <tr style="animation-delay:${i*25}ms">
+        <td style="font-size:13px">${fFecha(c.fecha)}</td>
+        <td style="font-family:var(--mono);font-size:13px;font-weight:500">${c.hora||'—'}</td>
+        <td style="color:var(--text-2);font-size:13px">${c.motivo?esc(c.motivo):'<span style="color:var(--text-3)">—</span>'}</td>
+        <td><span class="badge badge-${c.estado}">${cap(c.estado)}</span></td>
+      </tr>`).join('');
+  } catch(err) { tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-3)">Error al cargar historial</td></tr>'; }
+}
+
+/* ── Modal nueva cita ── */
+function openModalNuevaCita() {
+  document.getElementById('nc-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('nc-hora').value  = '';
+  document.getElementById('nc-motivo').value = '';
+  document.getElementById('nc-notas').value  = '';
+  document.getElementById('nc-error').style.display = 'none';
+  document.getElementById('modal-cita').classList.add('open');
+  setTimeout(()=>document.getElementById('nc-fecha').focus(),250);
+}
+function closeModal() { document.getElementById('modal-cita').classList.remove('open'); }
+
+async function agendarCita() {
+  const fecha  = document.getElementById('nc-fecha').value;
+  const hora   = document.getElementById('nc-hora').value;
+  const errEl  = document.getElementById('nc-error');
+  errEl.style.display = 'none';
+  if (!fecha||!hora) { errEl.textContent='Debes seleccionar fecha y hora.'; errEl.style.display='block'; return; }
+  if (new Date(fecha+'T'+hora+':00') < new Date()) { errEl.textContent='La fecha y hora no pueden ser en el pasado.'; errEl.style.display='block'; return; }
+  const btn = document.getElementById('btn-agendar');
+  btn.disabled=true; btn.textContent='Agendando…';
+  try {
+    const res = await fetch(API_CITAS+'/', {
+      method:'POST', headers:authHeaders(),
+      body:JSON.stringify({
+        user_id: usuarioActual.id,
+        fecha_cita: fecha+'T'+hora+':00-05:00',
+        motivo: document.getElementById('nc-motivo').value.trim()||null,
+        notas:  document.getElementById('nc-notas').value.trim()||null,
+      }),
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(()=>({}));
+      const msg = typeof e.detail==='string'?e.detail:Array.isArray(e.detail)?e.detail.map(d=>d.msg).join(', '):'No se pudo agendar la cita.';
+      errEl.textContent=msg; errEl.style.display='block'; return;
+    }
+    closeModal();
+    showToast('success','Tu cita ha sido agendada correctamente.','Cita agendada');
+    await loadInicio(); loadCitas();
+  } catch(err) { errEl.textContent='Error de conexión: '+err.message; errEl.style.display='block'; }
+  finally { btn.disabled=false; btn.textContent='Confirmar cita'; }
+}
+
+/* ── Modal cancelar ── */
+function pedirCancelar(id) {
+  citaACancelar=id;
+  document.getElementById('modal-cancelar').classList.add('open');
+}
+function closeCancelModal() { document.getElementById('modal-cancelar').classList.remove('open'); citaACancelar=null; }
+
+async function confirmarCancelar() {
+  if (!citaACancelar) return;
+  const btn=document.getElementById('btn-cancelar-confirm');
+  btn.disabled=true; btn.textContent='Cancelando…';
+  try {
+    const res = await fetch(API_CITAS+'/'+citaACancelar, {method:'PATCH',headers:authHeaders(),body:JSON.stringify({estado:'cancelada'})});
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    showToast('success','Tu cita ha sido cancelada.','Cita cancelada');
+    closeCancelModal(); await loadInicio(); loadCitas();
+  } catch(err) { showToast('error','No se pudo cancelar: '+err.message,'Error'); }
+  finally { btn.disabled=false; btn.textContent='Sí, cancelar'; }
+}
+
+/* ── Cerrar sesión ── */
+function cerrarSesion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('rol');
+  localStorage.removeItem('nombre');
+  localStorage.removeItem('user_id');
+  window.location.href = '../login.html';
+}
+
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeModal(); closeCancelModal(); } });
+
+loadUsuario();
+</script>
+</body>
+</html>
