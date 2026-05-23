@@ -362,7 +362,7 @@ const TCFG={error:{icon:'✕',title:'Error',d:5000},success:{icon:'✓',title:'L
 function showToast(type,msg,title){const wrap=document.getElementById('toast-wrap');const c=TCFG[type]||TCFG.info;const id='t'+Date.now();const el=document.createElement('div');el.id=id;el.className=`toast toast-${type}`;el.innerHTML=`<div class="toast-icon-wrap">${c.icon}</div><div class="toast-body"><div class="toast-title">${title||c.title}</div><div class="toast-msg">${msg}</div></div><button class="toast-close" onclick="rT('${id}')">&#x2715;</button><div class="toast-progress" style="animation-duration:${c.d}ms"></div>`;wrap.appendChild(el);setTimeout(()=>rT(id),c.d);}
 function rT(id){const el=document.getElementById(id);if(!el)return;el.style.animation='toastOut 0.22s ease forwards';setTimeout(()=>el.remove(),220);}
 
-const API_USERS = 'http://localhost:8000/api/appointments/buscar-usuario';
+const API_USERS = 'https://clinicaboris-production.up.railway.app/api/appointments/buscar-usuario';
 const HIST_KEY  = 'am_historial_clinico_v1'; // localStorage — reemplazar por API cuando exista
 
 let pacienteActual = null;   // objeto {id, cedula, nombre, apellido, ...}

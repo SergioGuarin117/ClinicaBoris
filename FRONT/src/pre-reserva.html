@@ -1389,7 +1389,7 @@ async function confirmarReserva() {
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await fetch('http://localhost:8000/api/appointments/', {
+    const res = await fetch('https://clinicaboris-production.up.railway.app/api/appointments/', {
       method:  'POST',
       headers,
       body:    JSON.stringify(payload),
@@ -1412,7 +1412,7 @@ async function confirmarReserva() {
     showToast('info', 'Cita guardada. Preparando pasarela de pago…');
     document.getElementById('btnText').textContent = 'Conectando con MercadoPago…';
 
-    const mpRes = await fetch('http://localhost:8000/api/payments/mp/crear', {
+    const mpRes = await fetch('https://clinicaboris-production.up.railway.app/api/payments/mp/crear', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({
