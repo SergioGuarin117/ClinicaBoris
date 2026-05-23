@@ -57,5 +57,9 @@ if os.path.exists("/front/src"):
     @app.get("/dashboard")
     def serve_dashboard():
         return FileResponse("/front/src/registro.citas.html")
+    
+
  
-    app.mount("/static", StaticFiles(directory="/front/src"), name="static")
+   # app.mount("/static", StaticFiles(directory="/front/src"), name="static")
+
+app.mount("/", StaticFiles(directory="/front", html=True), name="frontend")
