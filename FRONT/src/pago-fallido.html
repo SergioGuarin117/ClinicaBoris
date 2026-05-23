@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pago Fallido — Dr. Boris Viafara</title>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--red:#C0392B;--red-bg:#FDEDEC;--red-mid:#F5C6C2;--text:#0F1C2E;--text-2:#4A5568;--border:#DDE3ED;--surface:#FFFFFF;--bg:#EEF2F7;--font:'DM Sans',sans-serif;--serif:'Crimson Pro',serif;}
+    body{font-family:var(--font);background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3rem 2.5rem;max-width:460px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(15,28,46,0.08);}
+    .icon-wrap{width:80px;height:80px;border-radius:50%;background:var(--red-bg);border:3px solid var(--red-mid);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;}
+    @keyframes popIn{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
+    .icon-wrap svg{width:36px;height:36px;color:var(--red);}
+    h1{font-family:var(--serif);font-size:2.2rem;font-weight:700;color:var(--text);margin-bottom:0.5rem;}
+    .subtitle{font-size:15px;color:var(--text-2);line-height:1.6;margin-bottom:2rem;}
+    .reasons{background:var(--red-bg);border:1px solid var(--red-mid);border-radius:14px;padding:1.2rem 1.5rem;margin-bottom:2rem;text-align:left;}
+    .reasons-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--red);margin-bottom:10px;}
+    .reason-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);padding:4px 0;}
+    .reason-item::before{content:'·';color:var(--red);font-weight:700;flex-shrink:0;}
+    .btns{display:flex;flex-direction:column;gap:10px;}
+    .btn-retry{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--red);color:#fff;padding:12px 28px;border-radius:12px;font-size:15px;font-weight:600;text-decoration:none;transition:background 0.15s;box-shadow:0 4px 16px rgba(192,57,43,0.3);}
+    .btn-retry:hover{background:#a93226;}
+    .btn-back{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--surface);color:var(--text-2);padding:11px 28px;border-radius:12px;font-size:14px;font-weight:500;text-decoration:none;border:1.5px solid var(--border);transition:border-color 0.15s;}
+    .btn-back:hover{border-color:#8FA3BE;}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="icon-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </div>
+  <h1>Pago no procesado</h1>
+  <p class="subtitle">No pudimos completar tu pago. Tu cita quedó en estado pendiente y no se realizó ningún cobro.</p>
+  <div class="reasons">
+    <div class="reasons-title">Posibles causas</div>
+    <div class="reason-item">Fondos insuficientes en la tarjeta</div>
+    <div class="reason-item">Datos de tarjeta incorrectos</div>
+    <div class="reason-item">Pago rechazado por el banco emisor</div>
+    <div class="reason-item">Sesión expirada o cancelada</div>
+  </div>
+  <div class="btns">
+    <a href="pre-reserva.html" class="btn-retry">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+      Intentar de nuevo
+    </a>
+    <a href="paciente/portal_paciente.html" class="btn-back">Volver a mi portal</a>
+  </div>
+</div>
+</body>
+</html>

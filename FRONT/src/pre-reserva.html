@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Suite de Atención al Paciente — Dr. Boris Viafara</title>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #EEF2F7;
+      --surface:   #FFFFFF;
+      --surface-2: #F5F7FA;
+      --border:    #DDE3ED;
+      --text:      #0F1C2E;
+      --text-2:    #4A5568;
+      --text-3:    #8FA3BE;
+      --blue:      #1B4FD8;
+      --blue-mid:  #3B6FD4;
+      --blue-light:#EBF0FB;
+      --blue-dark: #1340B0;
+      --green:     #0D7A52;
+      --green-bg:  #E6F5EF;
+      --red:       #C0392B;
+      --red-bg:    #FDEDEC;
+      --amber:     #C97A10;
+      --amber-bg:  #FEF4E4;
+      --font:      'DM Sans', sans-serif;
+      --serif:     'Crimson Pro', Georgia, serif;
+      --mono:      'DM Mono', monospace;
+      --r:         14px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(circle at 15% 85%, rgba(27,79,216,0.07) 0%, transparent 50%),
+        radial-gradient(circle at 85% 15%, rgba(13,122,82,0.05) 0%, transparent 45%);
+    }
+
+    /* ── NAV ── */
+    .nav {
+      background: #0F1C2E;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo {
+      font-family: var(--serif);
+      font-size: 1.1rem;
+      color: #fff;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-logo-dot {
+      width: 8px; height: 8px;
+      background: var(--blue-mid);
+      border-radius: 50%;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .nav-links a.active { color: #fff; background: var(--blue-mid); }
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.6);
+    }
+    .nav-avatar {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── PROGRESS BAR ── */
+    .progress-wrap {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+    }
+    .progress-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      padding: 1rem 0;
+      gap: 0;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      gap: 10px;
+    }
+    .step-num {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--mono);
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+    .step.done .step-num   { background: var(--green); color: #fff; }
+    .step.active .step-num { background: var(--blue); color: #fff; }
+    .step.idle .step-num   { background: var(--bg); color: var(--text-3); border: 2px solid var(--border); }
+    .step-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .step.done .step-label   { color: var(--green); }
+    .step.active .step-label { color: var(--blue); }
+    .step.idle .step-label   { color: var(--text-3); }
+    .step-line {
+      flex: 1;
+      height: 2px;
+      margin: 0 10px;
+      border-radius: 2px;
+      transition: background 0.3s;
+    }
+    .step-line.done   { background: var(--green); }
+    .step-line.idle   { background: var(--border); }
+
+    /* ── MAIN ── */
+    .main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    .page-header {
+      margin-bottom: 2rem;
+    }
+    .page-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--blue-light);
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 0.75rem;
+    }
+    .page-header h1 {
+      font-family: var(--serif);
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.15;
+      margin-bottom: 0.4rem;
+    }
+    .page-header p {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.6;
+      max-width: 500px;
+    }
+
+    /* ── TIPO BADGE ── */
+    .tipo-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 99px;
+      padding: 6px 16px 6px 8px;
+      margin-bottom: 1.5rem;
+    }
+    .tipo-pill-icon {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--blue-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .tipo-pill-icon svg { width: 12px; height: 12px; color: var(--blue); }
+    .tipo-pill-text { font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+    .tipo-pill-price { font-size: 12.5px; font-weight: 700; color: var(--blue); font-family: var(--mono); }
+
+    /* ── SECTIONS ── */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .section:hover { box-shadow: 0 2px 16px rgba(15,28,46,0.06); }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 1.1rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+    .section-num {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: var(--blue);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--mono);
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .section-sub {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 1px;
+    }
+    .section-body { padding: 1.4rem; }
+
+    /* ── FIELDS ── */
+    .field-grid {
+      display: grid;
+      gap: 1rem;
+    }
+    .field-grid-2 { grid-template-columns: 1fr 1fr; }
+    .field-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .field input, .field textarea, .field select {
+      padding: 9px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-family: var(--font);
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      border-color: var(--blue-mid);
+      box-shadow: 0 0 0 3px rgba(59,111,212,0.12);
+    }
+    .field textarea { resize: vertical; min-height: 90px; }
+    .field input::placeholder, .field textarea::placeholder { color: var(--text-3); }
+
+    /* ── CHECKLIST ── */
+    .checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .check-item:hover { border-color: var(--blue-mid); background: var(--blue-light); }
+    .check-item.checked { border-color: var(--blue-mid); background: var(--blue-light); }
+    .check-box {
+      width: 18px; height: 18px;
+      border-radius: 5px;
+      border: 2px solid var(--border);
+      background: #fff;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .check-item.checked .check-box {
+      background: var(--blue-mid);
+      border-color: var(--blue-mid);
+    }
+    .check-box svg { width: 10px; height: 10px; color: #fff; display: none; }
+    .check-item.checked .check-box svg { display: block; }
+    .check-label { font-size: 13px; color: var(--text-2); }
+    input[type="checkbox"].hidden-check { position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; }
+
+    /* ── UPLOAD ZONA ── */
+    .upload-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 0.5rem;
+    }
+    .upload-slot {
+      aspect-ratio: 3/4;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+      overflow: hidden;
+      background: var(--surface-2);
+    }
+    .upload-slot:hover { border-color: var(--blue-mid); background: var(--blue-light); }
+    .upload-slot.has-image { border-style: solid; border-color: var(--blue-mid); }
+    .upload-slot input[type=file] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer;
+      width: 100%; height: 100%;
+    }
+    .upload-icon svg { width: 28px; height: 28px; color: var(--text-3); }
+    .upload-slot.has-image .upload-icon svg { color: var(--blue-mid); }
+    .upload-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-3); text-align: center; }
+    .upload-slot.has-image .upload-label { color: var(--blue); }
+    .upload-preview {
+      position: absolute;
+      inset: 0;
+      object-fit: cover;
+      border-radius: 10px;
+      display: none;
+    }
+    .upload-slot.has-image .upload-preview { display: block; }
+
+    .upload-notice {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--blue-light);
+      border: 1px solid rgba(59,111,212,0.2);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--blue);
+      margin-top: 12px;
+    }
+    .upload-notice svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ── CALENDARIO ── */
+    .cal-layout {
+      display: grid;
+      grid-template-columns: 1fr 200px;
+      gap: 1.2rem;
+    }
+    .cal-wrap { }
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .cal-month {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .cal-nav {
+      display: flex;
+      gap: 4px;
+    }
+    .cal-nav button {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-2);
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .cal-nav button:hover { background: var(--bg); border-color: var(--border); }
+    .cal-nav button svg { width: 14px; height: 14px; }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+    .cal-day-name {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-3);
+      padding: 4px 0;
+    }
+    .cal-day {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12.5px;
+      font-family: var(--mono);
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+      color: var(--text-2);
+      border: 1.5px solid transparent;
+    }
+    .cal-day:hover:not(.empty):not(.past) { background: var(--blue-light); color: var(--blue); border-color: var(--blue-mid); }
+    .cal-day.today { border-color: var(--blue-mid); color: var(--blue); font-weight: 600; }
+    .cal-day.selected { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .cal-day.past { color: var(--border); cursor: default; }
+    .cal-day.empty { cursor: default; }
+
+    /* ── HORARIOS ── */
+    .slots-wrap { }
+    .slots-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-3);
+      margin-bottom: 10px;
+    }
+    .slots-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .slot {
+      padding: 9px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 12.5px;
+      font-family: var(--mono);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+    }
+    .slot:hover { border-color: var(--blue-mid); background: var(--blue-light); color: var(--blue); }
+    .slot.selected {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+    .slot.selected svg { color: #fff; }
+    .slot svg { width: 14px; height: 14px; color: transparent; flex-shrink: 0; }
+    .slot.selected svg { color: #fff; display: block; }
+
+    /* ── INFO CIFRADA ── */
+    .enc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--blue-light);
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(59,111,212,0.2);
+    }
+    .enc-badge svg { width: 12px; height: 12px; }
+
+    /* ── RESUMEN LATERAL ── */
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.2rem;
+      position: sticky;
+      top: 72px;
+    }
+    .summary-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-3);
+      margin-bottom: 12px;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12.5px;
+    }
+    .summary-row:last-of-type { border-bottom: none; }
+    .summary-key { color: var(--text-3); }
+    .summary-val { color: var(--text); font-weight: 500; text-align: right; max-width: 140px; }
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0 0;
+      margin-top: 4px;
+      border-top: 2px solid var(--border);
+    }
+    .summary-total-label { font-size: 13px; font-weight: 600; color: var(--text); }
+    .summary-total-price { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--blue); }
+
+    /* ── FOOTER ACCIONES ── */
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .btn-save {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 20px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: var(--font);
+      cursor: pointer;
+      color: var(--text-2);
+      font-weight: 500;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+    .btn-save:hover { border-color: var(--text-3); color: var(--text); }
+    .btn-save svg { width: 14px; height: 14px; }
+
+    .btn-confirm {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 28px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 4px 16px rgba(27,79,216,0.3);
+    }
+    .btn-confirm:hover { background: var(--blue-dark); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(27,79,216,0.35); }
+    .btn-confirm:active { transform: scale(0.99); }
+    .btn-confirm:disabled { background: #8aaae0; cursor: not-allowed; box-shadow: none; transform: none; }
+    .btn-confirm svg { width: 16px; height: 16px; }
+
+    /* ── SERVER ERROR ── */
+    .server-error {
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--red-bg);
+      border: 1px solid #f5c6c2;
+      color: var(--red);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 13px;
+      margin-bottom: 1.2rem;
+      line-height: 1.5;
+    }
+    .server-error.visible { display: flex; }
+    .server-error svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── TOOLTIP ── */
+    .tooltip { position: relative; display: inline-block; }
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      background: var(--text);
+      color: #fff;
+      font-size: 11.5px;
+      padding: 6px 10px;
+      border-radius: 7px;
+      position: absolute;
+      z-index: 10;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+    /* ── PROCEDIMIENTOS ── */
+    .proc-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+    .proc-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface-2);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.15s, box-shadow 0.15s;
+      text-align: center;
+      user-select: none;
+    }
+    .proc-card:hover {
+      border-color: var(--blue-mid);
+      background: var(--blue-light);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(27,79,216,0.1);
+    }
+    .proc-card.selected {
+      border-color: var(--blue);
+      background: var(--blue-light);
+      box-shadow: 0 0 0 3px rgba(27,79,216,0.15);
+    }
+    .proc-icon {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .proc-icon svg { width: 20px; height: 20px; color: var(--text-3); transition: color 0.15s; }
+    .proc-card:hover .proc-icon,
+    .proc-card.selected .proc-icon { background: var(--blue-light); border-color: var(--blue-mid); }
+    .proc-card:hover .proc-icon svg,
+    .proc-card.selected .proc-icon svg { color: var(--blue); }
+    .proc-name {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .proc-tag {
+      font-size: 10.5px;
+      color: var(--text-3);
+      font-weight: 500;
+    }
+    .proc-card.selected .proc-name { color: var(--blue); }
+    .proc-card.selected .proc-tag  { color: var(--blue-mid); }
+    .proc-check {
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .proc-check svg { width: 9px; height: 9px; color: #fff; }
+    .proc-card.selected .proc-check { opacity: 1; transform: scale(1); }
+    .proc-error {
+      display: none;
+      font-size: 12px;
+      color: var(--red);
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: var(--red-bg);
+      border-radius: 8px;
+      border: 1px solid rgba(192,57,43,0.2);
+    }
+    .proc-error.visible { display: block; }
+    @media (max-width: 700px) {
+      .proc-grid { grid-template-columns: repeat(2, 1fr); }
+      .proc-card:nth-child(5) { grid-column: span 2; max-width: 200px; justify-self: center; }
+    }
+
+    /* ── SPINNER ── */
+    .spinner { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ── */
+    .toast-wrap {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 8px 30px rgba(15,28,46,0.15);
+      pointer-events: all;
+      animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+      max-width: 340px;
+    }
+    .toast-success { background: var(--green-bg); color: var(--green); border: 1px solid rgba(13,122,82,0.2); }
+    .toast-error   { background: var(--red-bg); color: var(--red); border: 1px solid rgba(192,57,43,0.2); }
+    .toast-info    { background: var(--blue-light); color: var(--blue); border: 1px solid rgba(27,79,216,0.2); }
+    @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+    /* ── ANIMACIONES ENTRADA ── */
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:none; } }
+    .page-header { animation: fadeUp 0.4s ease both; }
+    .section:nth-child(1) { animation: fadeUp 0.4s 0.05s ease both; }
+    .section:nth-child(2) { animation: fadeUp 0.4s 0.1s ease both; }
+    .section:nth-child(3) { animation: fadeUp 0.4s 0.15s ease both; }
+    .footer-actions { animation: fadeUp 0.4s 0.2s ease both; }
+
+    @media (max-width: 700px) {
+      .field-grid-2, .field-grid-3 { grid-template-columns: 1fr; }
+      .cal-layout { grid-template-columns: 1fr; }
+      .slots-list { flex-direction: row; flex-wrap: wrap; }
+      .slot { flex: 1; min-width: 120px; }
+      .upload-grid { grid-template-columns: repeat(3, 1fr); }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav class="nav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    Dr. Boris Viafara
+  </a>
+  <ul class="nav-links">
+    <li>
+      <a href="index.html">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Inicio
+      </a>
+    </li>
+    <li>
+      <a href="pre-reserva.html" class="active">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Reserva
+      </a>
+    </li>
+    <li>
+      <a href="paciente/portal_paciente.html">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Mi Portal
+      </a>
+    </li>
+    <li>
+      <a href="login.html">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Iniciar sesión
+      </a>
+    </li>
+  </ul>
+  <div class="nav-user" style="gap:12px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="nav-avatar" id="navAvatar">P</div>
+      <span id="navNombre" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Paciente</span>
+    </div>
+    <button onclick="cerrarSesion()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:7px;padding:5px 10px;cursor:pointer;color:rgba(255,255,255,0.55);font-size:11.5px;font-family:var(--font);display:flex;align-items:center;gap:5px;transition:background 0.15s,color 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.15)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.color='rgba(255,255,255,0.55)'">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Salir
+    </button>
+  </div>
+</nav>
+
+<!-- ── PROGRESS ── -->
+<div class="progress-wrap">
+  <div class="progress-inner">
+    <div class="step done">
+      <div class="step-num">✓</div>
+      <div class="step-label">Cuenta</div>
+    </div>
+    <div class="step-line done"></div>
+    <div class="step active">
+      <div class="step-num">2</div>
+      <div class="step-label">Pre-reserva</div>
+    </div>
+    <div class="step-line idle"></div>
+    <div class="step idle">
+      <div class="step-num">3</div>
+      <div class="step-label">Pago</div>
+    </div>
+    <div class="step-line idle"></div>
+    <div class="step idle">
+      <div class="step-num">4</div>
+      <div class="step-label">Confirmación</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-tag">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Suite de Atención al Paciente
+    </div>
+    <h1>Complete su perfil<br/>prequirúrgico</h1>
+    <p>Para garantizar los más altos estándares de seguridad y excelencia clínica, necesitamos la siguiente información antes de confirmar su cita.</p>
+
+    <!-- Tipo consulta pill -->
+    <div class="tipo-pill" id="tipoPill" style="margin-top:1rem">
+      <div class="tipo-pill-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <span class="tipo-pill-text" id="tipoPillLabel">Consulta Estándar</span>
+      <span class="tipo-pill-price" id="tipoPillPrice">$300 USD</span>
+    </div>
+  </div>
+
+  <!-- Error servidor -->
+  <div class="server-error" id="serverError">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="serverErrorMsg">Ocurrió un error. Por favor intenta de nuevo.</span>
+  </div>
+
+  <!-- ── SECCIÓN 0: PROCEDIMIENTO ── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </div>
+      <div>
+        <div class="section-title">Procedimiento de Interés</div>
+        <div class="section-sub">Seleccione el procedimiento para el que desea agendar su consulta</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="proc-grid" id="procGrid">
+        <div class="proc-card" onclick="selectProc(this,'Liposucción')">
+          <div class="proc-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div class="proc-name">Liposucción</div>
+          <div class="proc-tag">Contorno corporal</div>
+          <div class="proc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="proc-card" onclick="selectProc(this,'Aumento mamario')">
+          <div class="proc-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </div>
+          <div class="proc-name">Aumento mamario</div>
+          <div class="proc-tag">Estética femenina</div>
+          <div class="proc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="proc-card" onclick="selectProc(this,'Cirugía de párpados')">
+          <div class="proc-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="proc-name">Cirugía de párpados</div>
+          <div class="proc-tag">Blefaroplastia</div>
+          <div class="proc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="proc-card" onclick="selectProc(this,'Aumento de glúteos')">
+          <div class="proc-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M8 12c0 2.21 1.79 4 4 4s4-1.79 4-4"/></svg>
+          </div>
+          <div class="proc-name">Aumento de glúteos</div>
+          <div class="proc-tag">Contorno corporal</div>
+          <div class="proc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="proc-card" onclick="selectProc(this,'Abdominoplastia')">
+          <div class="proc-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="8" width="18" height="13" rx="3"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9.5" y1="14.5" x2="14.5" y2="14.5"/></svg>
+          </div>
+          <div class="proc-name">Abdominoplastia</div>
+          <div class="proc-tag">Cirugía abdominal</div>
+          <div class="proc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+      </div>
+      <input type="hidden" id="selProcedimiento" value=""/>
+      <div class="proc-error" id="procError">Selecciona un procedimiento para continuar.</div>
+    </div>
+  </div>
+
+  <!-- ── SECCIÓN 1: DOCUMENTACIÓN MÉDICA ── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <div>
+        <div class="section-title">Documentación Médica</div>
+        <div class="section-sub">Información clínica para preparar su atención</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="field-grid field-grid-2" style="margin-bottom:1rem">
+        <div class="field">
+          <label>Cirugías Previas</label>
+          <textarea id="cirugiasP" placeholder="Por favor, enumere cualquier procedimiento previo y sus fechas…"></textarea>
+        </div>
+        <div class="field">
+          <label>Medicamentos Actuales</label>
+          <textarea id="medicamentos" placeholder="Indique todos los medicamentos, suplementos y dosis…"></textarea>
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:1rem">
+        <label>Alergias conocidas</label>
+        <input type="text" id="alergias" placeholder="Medicamentos, materiales, látex, etc. Si no tiene, escriba: Ninguna"/>
+      </div>
+
+      <div class="field">
+        <label>Lista de Verificación de Salud Inmediata</label>
+        <div class="checklist" id="checklist" style="margin-top:6px">
+          <label class="check-item" onclick="toggleCheck(this)">
+            <input type="checkbox" class="hidden-check" name="chk1"/>
+            <div class="check-box"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1,5 3.5,8 9,2"/></svg></div>
+            <span class="check-label">Sin antecedentes de problemas cardiovasculares</span>
+          </label>
+          <label class="check-item" onclick="toggleCheck(this)">
+            <input type="checkbox" class="hidden-check" name="chk2"/>
+            <div class="check-box"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1,5 3.5,8 9,2"/></svg></div>
+            <span class="check-label">No fumador o he cesado por más de 4 semanas</span>
+          </label>
+          <label class="check-item" onclick="toggleCheck(this)">
+            <input type="checkbox" class="hidden-check" name="chk3"/>
+            <div class="check-box"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1,5 3.5,8 9,2"/></svg></div>
+            <span class="check-label">Sin diagnóstico de diabetes no controlada</span>
+          </label>
+          <label class="check-item" onclick="toggleCheck(this)">
+            <input type="checkbox" class="hidden-check" name="chk4"/>
+            <div class="check-box"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1,5 3.5,8 9,2"/></svg></div>
+            <span class="check-label">Sin consumo de anticoagulantes en los últimos 7 días</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECCIÓN 2: IMÁGENES CLÍNICAS ── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <div>
+        <div class="section-title">Imágenes Clínicas Seguras</div>
+        <div class="section-sub">Opcional — Ayudan al cirujano a preparar la consulta</div>
+      </div>
+      <div style="margin-left:auto">
+        <div class="enc-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Cifrado AES-256
+        </div>
+      </div>
+    </div>
+    <div class="section-body">
+      <p style="font-size:13px;color:var(--text-2);margin-bottom:1rem;line-height:1.6">
+        Por favor, proporcione tres ángulos claros (Frente, Perfil Izquierdo, Perfil Derecho). Utilice un fondo neutro e iluminación natural.
+      </p>
+      <div class="upload-grid">
+        <div class="upload-slot" id="slot-frente">
+          <input type="file" accept="image/*" onchange="previewImage(this,'slot-frente')" title="Vista frontal"/>
+          <img class="upload-preview" id="preview-frente" src="" alt=""/>
+          <div class="upload-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <span class="upload-label">Vista Frontal</span>
+        </div>
+        <div class="upload-slot" id="slot-izq">
+          <input type="file" accept="image/*" onchange="previewImage(this,'slot-izq')" title="Perfil izquierdo"/>
+          <img class="upload-preview" id="preview-izq" src="" alt=""/>
+          <div class="upload-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <span class="upload-label">Perfil Izquierdo</span>
+        </div>
+        <div class="upload-slot" id="slot-der">
+          <input type="file" accept="image/*" onchange="previewImage(this,'slot-der')" title="Perfil derecho"/>
+          <img class="upload-preview" id="preview-der" src="" alt=""/>
+          <div class="upload-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <span class="upload-label">Perfil Derecho</span>
+        </div>
+      </div>
+      <div class="upload-notice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Las imágenes están cifradas y sólo son visibles para su cirujano asignado.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECCIÓN 3: SELECCIÓN DE CITA ── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div>
+        <div class="section-title">Selección de Cita</div>
+        <div class="section-sub">Elija fecha y horario disponible</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="cal-layout">
+        <!-- Calendario -->
+        <div class="cal-wrap">
+          <div class="cal-header">
+            <span class="cal-month" id="calMonth">— —</span>
+            <div class="cal-nav">
+              <button onclick="changeMonth(-1)" aria-label="Mes anterior">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <button onclick="changeMonth(1)" aria-label="Mes siguiente">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+
+        <!-- Horarios -->
+        <div class="slots-wrap">
+          <div class="slots-title">Horarios Disponibles</div>
+          <div class="slots-list" id="slotsList">
+            <div style="font-size:13px;color:var(--text-3);padding:12px 0">Selecciona una fecha para ver horarios</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <div class="footer-actions">
+    <a href="login.html" class="btn-save">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Guardar para después
+    </a>
+    <button class="btn-confirm" id="btnConfirmar" onclick="confirmarReserva()">
+      <span id="btnText">Confirmar Reserva</span>
+      <svg id="btnArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      <svg id="btnSpinner" class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="10" stroke-opacity=".25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+    </button>
+  </div>
+
+</main>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ── Sesión ── */
+const nombre  = localStorage.getItem('nombre') || 'Paciente';
+const userId  = localStorage.getItem('user_id');
+const token   = localStorage.getItem('token');
+const params  = new URLSearchParams(window.location.search);
+const tipo    = params.get('tipo') || localStorage.getItem('tipo_consulta') || 'estandar';
+
+// Nav: nombre y avatar
+document.getElementById('navNombre').textContent = nombre;
+document.getElementById('navAvatar').textContent = nombre.trim().charAt(0).toUpperCase();
+
+// Mostrar "Iniciar sesión" solo si no hay sesión activa
+// Ocultar si ya está logueado
+(function() {
+  const links = document.querySelectorAll('.nav-links a');
+  links.forEach(a => {
+    if (a.getAttribute('href') === 'login.html') {
+      a.parentElement.style.display = token ? 'none' : 'list-item';
+    }
+    if (a.getAttribute('href') === 'paciente/portal_paciente.html') {
+      a.parentElement.style.display = token ? 'list-item' : 'none';
+    }
+  });
+})();
+
+function cerrarSesion() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('rol');
+  localStorage.removeItem('nombre');
+  localStorage.removeItem('user_id');
+  localStorage.removeItem('tipo_consulta');
+  localStorage.removeItem('cita_id');
+  localStorage.removeItem('cita_fecha');
+  localStorage.removeItem('cita_slot');
+  window.location.href = 'login.html';
+}
+
+// Tipo pill
+const esPremium = tipo === 'premium';
+document.getElementById('tipoPillLabel').textContent = esPremium ? 'Consulta Premium' : 'Consulta Estándar';
+document.getElementById('tipoPillPrice').textContent = esPremium ? '$600 USD' : '$300 USD';
+
+/* ── Procedimiento ── */
+function selectProc(card, nombre) {
+  document.querySelectorAll('.proc-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  document.getElementById('selProcedimiento').value = nombre;
+  document.getElementById('procError').classList.remove('visible');
+}
+
+/* ── Checklist ── */
+function toggleCheck(label) {
+  const inp = label.querySelector('input[type=checkbox]');
+  const checked = !inp.checked;
+  inp.checked = checked;
+  label.classList.toggle('checked', checked);
+}
+
+/* ── Upload preview ── */
+function previewImage(input, slotId) {
+  const slot = document.getElementById(slotId);
+  const preview = slot.querySelector('.upload-preview');
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.src = e.target.result;
+      slot.classList.add('has-image');
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+/* ── Calendario ── */
+const DIAS  = ['D','L','M','X','J','V','S'];
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const SLOTS_BY_DOW = {
+  1: ['09:00 AM - 10:30 AM','11:00 AM - 12:30 PM','02:00 PM - 03:30 PM','04:00 PM - 05:30 PM'],
+  2: ['09:00 AM - 10:30 AM','11:00 AM - 12:30 PM','03:00 PM - 04:30 PM'],
+  3: ['10:00 AM - 11:30 AM','02:00 PM - 03:30 PM','04:00 PM - 05:30 PM'],
+  4: ['09:00 AM - 10:30 AM','11:00 AM - 12:30 PM','02:00 PM - 03:30 PM'],
+  5: ['09:00 AM - 10:30 AM','11:00 AM - 12:30 PM'],
+};
+
+let calYear, calMonth, selDate = null, selSlot = null;
+
+function initCal() {
+  const now = new Date();
+  calYear  = now.getFullYear();
+  calMonth = now.getMonth();
+  renderCal();
+}
+
+function changeMonth(delta) {
+  calMonth += delta;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCal();
+}
+
+function renderCal() {
+  document.getElementById('calMonth').textContent = `${MESES[calMonth]} ${calYear}`;
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  // Días de semana
+  DIAS.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-day-name';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  // Espacios vacíos
+  for (let i = 0; i < firstDay; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day empty';
+    grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(calYear, calMonth, d);
+    const dow  = date.getDay();
+    const isPast = date < today;
+    const isToday = date.getTime() === today.getTime();
+    const isWeekend = dow === 0 || dow === 6;
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+    const el = document.createElement('div');
+    el.textContent = d;
+    el.className = 'cal-day';
+
+    if (isPast || isWeekend) el.classList.add('past');
+    else if (isToday) el.classList.add('today');
+
+    if (selDate === dateStr) el.classList.add('selected');
+
+    if (!isPast && !isWeekend) {
+      el.addEventListener('click', () => selectDate(dateStr, dow));
+    }
+    grid.appendChild(el);
+  }
+}
+
+function selectDate(dateStr, dow) {
+  selDate = dateStr;
+  selSlot = null;
+  renderCal();
+  renderSlots(dow);
+  showToast('info', `Fecha seleccionada: ${formatDate(dateStr)}`, 500);
+}
+
+function renderSlots(dow) {
+  const list = document.getElementById('slotsList');
+  const available = SLOTS_BY_DOW[dow] || [];
+  if (!available.length) {
+    list.innerHTML = '<div style="font-size:13px;color:var(--text-3);padding:12px 0">Sin horarios disponibles para este día</div>';
+    return;
+  }
+  list.innerHTML = available.map(s => `
+    <div class="slot" onclick="selectSlot(this,'${s}')">
+      <span>${s}</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+  `).join('');
+}
+
+function selectSlot(el, slot) {
+  document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  selSlot = slot;
+}
+
+function formatDate(str) {
+  const [y,m,d] = str.split('-');
+  return `${parseInt(d)} de ${MESES[parseInt(m)-1]} de ${y}`;
+}
+
+initCal();
+
+/* ── Toast ── */
+function showToast(type, msg, delay = 0) {
+  setTimeout(() => {
+    const wrap = document.getElementById('toastWrap');
+    const id = 't' + Date.now();
+    const icons = {
+      success: '<polyline points="20 6 9 17 4 12"/>',
+      error:   '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+      info:    '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+    };
+    const el = document.createElement('div');
+    el.id = id;
+    el.className = `toast toast-${type}`;
+    el.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${icons[type]}</svg>${msg}`;
+    wrap.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }, delay);
+}
+
+/* ── Confirmar ── */
+async function confirmarReserva() {
+  // Validaciones
+  const procedimiento = document.getElementById('selProcedimiento').value;
+  if (!procedimiento) {
+    document.getElementById('procError').classList.add('visible');
+    document.getElementById('procGrid').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showToast('error', 'Selecciona un procedimiento para continuar.');
+    return;
+  }
+  const alergias = document.getElementById('alergias').value.trim();
+  if (!alergias) {
+    showToast('error', 'Por favor indica alergias conocidas (o "Ninguna").');
+    document.getElementById('alergias').focus();
+    return;
+  }
+  if (!selDate) {
+    showToast('error', 'Selecciona una fecha para tu cita.');
+    return;
+  }
+  if (!selSlot) {
+    showToast('error', 'Selecciona un horario disponible.');
+    return;
+  }
+
+  // Verificar sesión
+  const userIdInt = parseInt(userId);
+  if (!userIdInt) {
+    showToast('error', 'Debes iniciar sesión para agendar una cita.');
+    setTimeout(() => window.location.href = 'login.html', 1500);
+    return;
+  }
+
+  const btn = document.getElementById('btnConfirmar');
+  btn.disabled = true;
+  document.getElementById('btnText').textContent = 'Procesando…';
+  document.getElementById('btnArrow').style.display = 'none';
+  document.getElementById('btnSpinner').style.display = 'block';
+  document.getElementById('serverError').classList.remove('visible');
+
+  try {
+    // Construir fecha+hora ISO con timezone Colombia
+    const [hourPart] = selSlot.split(' - ');
+    const [time, ampm] = hourPart.split(' ');
+    let [h, m] = time.split(':').map(Number);
+    if (ampm === 'PM' && h !== 12) h += 12;
+    if (ampm === 'AM' && h === 12) h = 0;
+    const fechaISO = `${selDate}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00-05:00`;
+
+    // Verificar que la fecha es futura
+    if (new Date(fechaISO) <= new Date()) {
+      showToast('error', 'La fecha seleccionada ya paso. Elige otra.');
+      btn.disabled = false;
+      document.getElementById('btnText').textContent = 'Confirmar Reserva';
+      document.getElementById('btnArrow').style.display = 'block';
+      document.getElementById('btnSpinner').style.display = 'none';
+      return;
+    }
+
+    // Recopilar checks
+    const checks = [...document.querySelectorAll('.check-item input')].map((inp,i) => ({
+      item: inp.closest('.check-item').querySelector('.check-label').textContent.trim(),
+      ok: inp.checked,
+    }));
+
+    const payload = {
+      user_id:           userIdInt,
+      fecha_cita:        fechaISO,
+      motivo:            'Consulta ' + (esPremium ? 'Premium' : 'Estándar'),
+      notas:             JSON.stringify({
+        cirugias_previas: document.getElementById('cirugiasP').value.trim(),
+        medicamentos:     document.getElementById('medicamentos').value.trim(),
+        alergias,
+        procedimiento,
+        checklist:        checks,
+        tipo_consulta:    tipo,
+      }),
+    };
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('http://localhost:8000/api/appointments/', {
+      method:  'POST',
+      headers,
+      body:    JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Error ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    // Guardar datos de la cita
+    localStorage.setItem('cita_id',      data.id || '');
+    localStorage.setItem('cita_fecha',   selDate);
+    localStorage.setItem('cita_slot',    selSlot);
+    localStorage.setItem('tipo_consulta', tipo);
+
+    // ── Llamar a MercadoPago ──────────────────────────────
+    showToast('info', 'Cita guardada. Preparando pasarela de pago…');
+    document.getElementById('btnText').textContent = 'Conectando con MercadoPago…';
+
+    const mpRes = await fetch('http://localhost:8000/api/payments/mp/crear', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        cita_id: data.id,
+        user_id: userIdInt,
+        tipo:    tipo,
+      }),
+    });
+
+    if (!mpRes.ok) {
+      const mpErr = await mpRes.json().catch(() => ({}));
+      throw new Error(mpErr.detail || 'Error al crear el pago en MercadoPago');
+    }
+
+    const mpData = await mpRes.json();
+
+    // Usar sandbox_url en desarrollo, init_point en producción
+    const urlPago = mpData.sandbox_url || mpData.init_point;
+
+    showToast('success', '¡Redirigiendo a MercadoPago…');
+    setTimeout(() => {
+      window.location.href = urlPago;
+    }, 1000);
+
+  } catch(err) {
+    document.getElementById('serverErrorMsg').textContent = err.message || 'Error al conectar con el servidor.';
+    document.getElementById('serverError').classList.add('visible');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('btnText').textContent = 'Confirmar Reserva';
+    document.getElementById('btnArrow').style.display = 'block';
+    document.getElementById('btnSpinner').style.display = 'none';
+  }
+}
+
+/* ── Verificar sesión ── */
+if (!token && !userId) {
+  showToast('info', 'Inicia sesión para continuar', 300);
+}
+</script>
+</body>
+</html>

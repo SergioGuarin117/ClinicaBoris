@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pago Pendiente — Dr. Boris Viafara</title>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--amber:#C97A10;--amber-bg:#FEF4E4;--amber-mid:#F9D89A;--text:#0F1C2E;--text-2:#4A5568;--border:#DDE3ED;--surface:#FFFFFF;--bg:#EEF2F7;--font:'DM Sans',sans-serif;--serif:'Crimson Pro',serif;--mono:'DM Mono',monospace;}
+    body{font-family:var(--font);background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3rem 2.5rem;max-width:460px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(15,28,46,0.08);}
+    .icon-wrap{width:80px;height:80px;border-radius:50%;background:var(--amber-bg);border:3px solid var(--amber-mid);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;}
+    @keyframes popIn{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
+    .icon-wrap svg{width:36px;height:36px;color:var(--amber);animation:pulse 2s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+    h1{font-family:var(--serif);font-size:2.2rem;font-weight:700;color:var(--text);margin-bottom:0.5rem;}
+    .subtitle{font-size:15px;color:var(--text-2);line-height:1.6;margin-bottom:2rem;}
+    .info-box{background:var(--amber-bg);border:1px solid var(--amber-mid);border-radius:14px;padding:1.2rem 1.5rem;margin-bottom:2rem;text-align:left;}
+    .info-row{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;border-bottom:1px solid var(--amber-mid);}
+    .info-row:last-child{border-bottom:none;}
+    .info-label{color:var(--amber);font-weight:500;}
+    .info-val{color:var(--text);font-weight:600;font-family:var(--mono);}
+    .btn-portal{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--amber);color:#fff;padding:12px 28px;border-radius:12px;font-size:15px;font-weight:600;text-decoration:none;transition:background 0.15s;box-shadow:0 4px 16px rgba(201,122,16,0.3);}
+    .btn-portal:hover{background:#a86510;}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="icon-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  </div>
+  <h1>Pago en proceso</h1>
+  <p class="subtitle">Tu pago está siendo verificado. Esto puede tomar unos minutos dependiendo de tu método de pago.</p>
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">Estado</span><span class="info-val">⏳ Pendiente</span></div>
+    <div class="info-row"><span class="info-label">Referencia</span><span class="info-val" id="d-ref">—</span></div>
+    <div class="info-row"><span class="info-label">Acción</span><span class="info-val">Te notificaremos por correo</span></div>
+  </div>
+  <a href="paciente/portal_paciente.html" class="btn-portal">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Ir a mi portal
+  </a>
+</div>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  document.getElementById('d-ref').textContent = params.get('ref') || '—';
+</script>
+</body>
+</html>

@@ -312,7 +312,9 @@
         if (data.rol === 'admin' || data.rol === 'medico') {
           window.location.href = 'admin/panel_admin.html';
         } else if (data.rol === 'paciente') {
-          window.location.href = 'paciente/portal_paciente.html';
+          const tipoParam = params.get("tipo"); window.location.href = tipoParam ? "pre-reserva.html?tipo=" + tipoParam : "pre-reserva.html";
+        } else if (data.rol === 'cirujano') {
+          window.location.href = 'cirujano/panel_cirujano.html';
         } else {
           document.getElementById('serverErrorMsg').textContent = 'Rol no reconocido: ' + data.rol;
           document.getElementById('serverError').classList.add('visible');
@@ -340,7 +342,8 @@
       localStorage.setItem('token', token);
       localStorage.setItem('rol', rol);
       if (rol === 'admin' || rol === 'medico') window.location.href = 'admin/panel_admin.html';
-      else window.location.href = 'paciente/portal_paciente.html';
+      else if (rol === 'cirujano') window.location.href = 'cirujano/panel_cirujano.html';
+      else { const tipoParam = params.get("tipo"); window.location.href = tipoParam ? "pre-reserva.html?tipo=" + tipoParam : "pre-reserva.html"; }
     } catch(e) {
       document.getElementById('serverErrorMsg').textContent = 'Error procesando el login con Google.';
       document.getElementById('serverError').classList.add('visible');
