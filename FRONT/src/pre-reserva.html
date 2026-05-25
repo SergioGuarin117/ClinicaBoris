@@ -1163,17 +1163,119 @@ function toggleCheck(label) {
 }
 
 /* ── Upload preview ── */
-function previewImage(input, slotId) {
-  const slot = document.getElementById(slotId);
-  const preview = slot.querySelector('.upload-preview');
-  if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      preview.src = e.target.result;
-      slot.classList.add('has-image');
-    };
-    reader.readAsDataURL(input.files[0]);
+async function previewImage(input, slotId) {
+  if (!input.files || !input.files[0]) return;
+ 
+  const procedimiento = document.getElementById('selProcedimiento').value;
+ 
+  // Verificar que se haya seleccionado un procedimiento primero
+  if (!procedimiento) {
+    showToast('error', 'Selecciona un procedimiento antes de subir la foto.');
+    document.getElementById('procError').classList.add('visible');
+    document.getElementById('procGrid').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    input.value = ''; // limpiar el input
+    return;
   }
+ 
+  // Mostrar estado de carga en el slot
+  const slot = document.getElementById(slotId);
+  setSlotEstado(slot, 'analizando');
+ 
+  try {
+    // Enviar imagen al backend para análisis
+    const formData = new FormData();
+    formData.append('imagen', input.files[0]);
+    formData.append('procedimiento', procedimiento);
+ 
+    const res = await fetch('http://localhost:8000/api/ia/verificar-imagen', {
+      method: 'POST',
+      body: formData,
+    });
+ 
+    if (!res.ok) throw new Error('Error al analizar la imagen.');
+ 
+    const data = await res.json();
+ 
+    if (data.aprobada) {
+      // ✅ Imagen válida — mostrar preview
+      const reader = new FileReader();
+      reader.onload = e => {
+        const preview = slot.querySelector('.upload-preview');
+        preview.src = e.target.result;
+        slot.classList.add('has-image');
+        setSlotEstado(slot, 'ok');
+        showToast('success', data.mensaje);
+      };
+      reader.readAsDataURL(input.files[0]);
+    } else {
+      // ❌ Imagen inválida — no mostrar preview, limpiar input
+      input.value = '';
+      setSlotEstado(slot, 'error');
+      mostrarErrorSlot(slot, data.mensaje);
+      showToast('error', data.mensaje);
+    }
+ 
+  } catch (err) {
+    input.value = '';
+    setSlotEstado(slot, 'idle');
+    showToast('error', 'No se pudo analizar la imagen. Verifica tu conexión.');
+  }
+}
+ 
+// 2. Función auxiliar — cambia el estado visual del slot
+function setSlotEstado(slot, estado) {
+  // Limpiar estados anteriores
+  slot.classList.remove('has-image');
+  slot.style.borderColor = '';
+  slot.style.background  = '';
+ 
+  const errorEl = slot.querySelector('.slot-ia-error');
+  if (errorEl) errorEl.remove();
+ 
+  if (estado === 'analizando') {
+    slot.style.borderColor = 'var(--amber)';
+    slot.style.background  = 'var(--amber-bg)';
+    // Agregar texto de carga
+    const loading = document.createElement('div');
+    loading.className = 'slot-ia-error';
+    loading.style.cssText = 'position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:10px;font-weight:600;color:var(--amber);padding:0 6px';
+    loading.textContent = 'Analizando…';
+    slot.appendChild(loading);
+  }
+ 
+  if (estado === 'ok') {
+    slot.style.borderColor = 'var(--green)';
+  }
+ 
+  if (estado === 'error') {
+    slot.style.borderColor = 'var(--red)';
+    slot.style.background  = 'var(--red-bg)';
+  }
+ 
+  if (estado === 'idle') {
+    slot.style.borderColor = '';
+    slot.style.background  = '';
+  }
+}
+ 
+// 3. Función auxiliar — muestra mensaje de error dentro del slot
+function mostrarErrorSlot(slot, mensaje) {
+  const errorEl = document.createElement('div');
+  errorEl.className = 'slot-ia-error';
+  errorEl.style.cssText = `
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: var(--red-bg);
+    color: var(--red);
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+    padding: 6px 8px;
+    border-radius: 0 0 10px 10px;
+    line-height: 1.3;
+  `;
+  errorEl.textContent = mensaje;
+  slot.appendChild(errorEl);
 }
 
 /* ── Calendario ── */

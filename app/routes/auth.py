@@ -26,7 +26,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8  # 8 horas
 # ─── Configuración Google OAuth ───────────────────────────────────────────────
 GOOGLE_CLIENT_ID     = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-FRONTEND_URL         = os.getenv("FRONTEND_URL", "http://localhost:8000")
+FRONTEND_URL         = os.getenv("FRONTEND_URL", "https://clinicaboris-production.up.railway.app/")
 GOOGLE_REDIRECT_URI  = f"{FRONTEND_URL}/api/auth/google/callback"
 
 GOOGLE_AUTH_URL  = "https://accounts.google.com/o/oauth2/v2/auth"
