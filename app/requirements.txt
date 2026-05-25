@@ -15,3 +15,5 @@ httpx
 pytest
 pytest-asyncio
 mercadopago
+mediapipe
+opencv-python
