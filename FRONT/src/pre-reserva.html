@@ -1187,7 +1187,7 @@ async function previewImage(input, slotId) {
     formData.append('imagen', input.files[0]);
     formData.append('procedimiento', procedimiento);
  
-    const res = await fetch('http://localhost:8000/api/ia/verificar-imagen', {
+    const res = await fetch('https://clinicaboris-production.up.railway.app/api/ia/verificar-imagen', {
       method: 'POST',
       body: formData,
     });
