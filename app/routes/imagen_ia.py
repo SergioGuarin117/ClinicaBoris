@@ -21,7 +21,7 @@ PROCEDIMIENTO_PARTES = {
     "Abdominoplastia":      ["Tronco / Abdomen"],
 }
 
-# ─── Cargar modelo MediaPipe al iniciar ───────────────────────────────────────
+# ─── Modelo MediaPipe ─────────────────────────────────────────────────────────
 MODELO_PATH = "pose_landmarker_heavy.task"
 MODELO_URL  = (
     "https://storage.googleapis.com/mediapipe-models/"
@@ -29,26 +29,30 @@ MODELO_URL  = (
     "pose_landmarker_heavy.task"
 )
 
-if not os.path.exists(MODELO_PATH):
-    print("Descargando modelo MediaPipe...")
-    urllib.request.urlretrieve(MODELO_URL, MODELO_PATH)
-    print("Modelo descargado.")
+_detector = None
 
-base_options = python.BaseOptions(model_asset_path=MODELO_PATH)
-options = vision.PoseLandmarkerOptions(
-    base_options=base_options,
-    min_pose_detection_confidence=0.5,
-    min_pose_presence_confidence=0.5,
-    min_tracking_confidence=0.5,
-    num_poses=1,
-)
-detector = vision.PoseLandmarker.create_from_options(options)
-print("Detector IA listo.")
+def get_detector():
+    global _detector
+    if _detector is None:
+        if not os.path.exists(MODELO_PATH):
+            print("Descargando modelo MediaPipe...")
+            urllib.request.urlretrieve(MODELO_URL, MODELO_PATH)
+            print("Modelo descargado.")
+        base_options = python.BaseOptions(model_asset_path=MODELO_PATH)
+        options = vision.PoseLandmarkerOptions(
+            base_options=base_options,
+            min_pose_detection_confidence=0.5,
+            min_pose_presence_confidence=0.5,
+            min_tracking_confidence=0.5,
+            num_poses=1,
+        )
+        _detector = vision.PoseLandmarker.create_from_options(options)
+        print("Detector IA listo.")
+    return _detector
 
 
-# ─── Función de detección (misma lógica que el notebook) ─────────────────────
+# ─── Función de detección ─────────────────────────────────────────────────────
 def detectar_partes(imagen_bytes: bytes) -> dict:
-    # Convertir bytes a imagen numpy
     nparr = np.frombuffer(imagen_bytes, np.uint8)
     imagen_bgr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     if imagen_bgr is None:
@@ -56,13 +60,12 @@ def detectar_partes(imagen_bytes: bytes) -> dict:
 
     imagen_rgb = cv2.cvtColor(imagen_bgr, cv2.COLOR_BGR2RGB)
 
-    # Convertir a formato MediaPipe
     mp_image = mp.Image(
         image_format=mp.ImageFormat.SRGB,
         data=imagen_rgb
     )
 
-    resultados = detector.detect(mp_image)
+    resultados = get_detector().detect(mp_image)
 
     if not resultados.pose_landmarks:
         return {"partes_detectadas": [], "confianza": {}}
@@ -106,7 +109,6 @@ def detectar_partes(imagen_bytes: bytes) -> dict:
             partes_detectadas.append(parte)
             confianza[parte] = round(sum(pv) / len(pv) * 100, 1)
 
-    # Rostro vs cabeza trasera
     if cara_frontal_visible:
         todos_rostro = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         vr = [landmarks[i].visibility for i in todos_rostro if visible(i)]
@@ -117,7 +119,6 @@ def detectar_partes(imagen_bytes: bytes) -> dict:
         partes_detectadas.append("Cabeza (vista trasera)")
         confianza["Cabeza (vista trasera)"] = round(sum(vc) / len(vc) * 100, 1)
 
-    # Espalda
     if es_espalda:
         ve = [landmarks[i].visibility for i in puntos_hombros_caderas if visible(i)]
         partes_detectadas.append("Espalda")
@@ -138,27 +139,15 @@ async def verificar_imagen(
     imagen: UploadFile = File(...),
     procedimiento: str = "",
 ):
-    """
-    Recibe una imagen y el procedimiento seleccionado.
-    Devuelve:
-      - partes_detectadas: lista de partes del cuerpo visibles
-      - confianza: porcentaje de certeza por parte
-      - aprobada: True si la imagen es válida para el procedimiento
-      - mensaje: explicación para mostrar al paciente
-    """
-    # Validar tipo de archivo
     if not imagen.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="El archivo debe ser una imagen.")
 
-    # Leer bytes de la imagen
     imagen_bytes = await imagen.read()
 
-    # Analizar con MediaPipe
     resultado = detectar_partes(imagen_bytes)
     partes    = resultado["partes_detectadas"]
     confianza = resultado["confianza"]
 
-    # Verificar si corresponde al procedimiento
     partes_requeridas = PROCEDIMIENTO_PARTES.get(procedimiento, [])
 
     if not partes:
@@ -173,7 +162,6 @@ async def verificar_imagen(
         })
 
     if not partes_requeridas:
-        # Procedimiento desconocido — solo informamos lo que vemos
         return JSONResponse({
             "partes_detectadas": partes,
             "confianza": confianza,
@@ -181,7 +169,6 @@ async def verificar_imagen(
             "mensaje": f"Partes detectadas: {', '.join(partes)}.",
         })
 
-    # Verificar que al menos UNA parte requerida esté en la imagen
     partes_encontradas = [p for p in partes_requeridas if p in partes]
 
     if partes_encontradas:
